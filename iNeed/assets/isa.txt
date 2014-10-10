@@ -1,0 +1,75 @@
+# OBJECT MODEL: C=CLASS D=DERIVED B=BASE O=OBJECT M=MEMBER V=VALUE L=LINK
+# Class is the meta-class: it is the class of all classes, it is abstract^2. To say "person is a class",
+# is ok as 'person' is abstract and 'a class' refers to an abstract concept. But to say "a person is a 
+# class", is strange as "a person" refers to a concrete entity, but "a class" is abstract. To say "a 
+# person is an entity" is also ok as both 'person' and 'entity' are abstract, and 'a person' and 'an entity' 
+# are both concrete. Geddit?
+
+#================
+# ISA: the META-CLASS
+# e.g. person is a class; is person a class.
+     On "X is a class.", think "is X a class?".
+Then on "X is a class.", reply "i know".
+Then on "X is a class.", if not, think "create a link called isa from X to class".
+        "X is a class." implies "X is an entity".
+
+     On "is X a class?", perform "link exists $x isa".
+Then on "is X a class?", if not, reply "No".
+Then on "is X a class?", reply "Yes".
+
+     On "is X not a class?", perform "!link exists $x isa".
+Then on "is X not a class?", if not, reply "No".
+Then on "is X not a class?", reply "Yes".
+
+On "what is a class?", reply "A class defines an object".
+#
+#=================
+# ISA: CLASSES
+# e.g. a person is an entity. an engineer is a person.
+#On "a D is a B.", think  "create a link called isa from D to B".
+     On "a D is a B.", think "is a B a D?".
+Then on "a D is a B.", reply "no, B is a D".
+Then on "a D is a B.", if not, think "create a link called isa from D to B".
+Then on "a D is a B.", if not, reply "problems creating a link called isa from D to B".
+Then on "a D is a B.", reply "ok".
+        "a D is a B." implies "delete the instanceof link from D".
+
+# e.g. is an engineer an entity?
+     On "Is a D a B?", think "a link $d isa $b exists?".
+Then on "Is a D a B?", if not, reply "no".
+Then on "Is a D a B?", reply "yes".
+        "Is a D a B?" implies "D exists?"; if not, reply "I do not know of D".
+        "Is a D a B?" implies "B exists?"; if not, reply "I do not know of B".
+
+
+     On "What is a ABSTRACT-CLASS?", think "get link $class isa!".
+Then on "What is a ABSTRACT-CLASS?", reply "a CLASS is a ...".
+#================
+# ISA - INSTANCES
+#e.g. martin is an engineer. CLASS will not be class -- caught above
+On "O is a C", think "Create a link called instanceof from O to C".
+   "O is a C" implies "create O!".
+   "O is a C" implies "is O not a class?"; if not, reply "O is a class".
+   "O is a C" implies "is C a class?"; if not, reply "C is not a class".
+#On "O is an C", think "O is a C". # this overflows an must be translated to a in pattern?
+
+     On "is O an entity", perform "link exists $o instanceof $c".
+Then on "is O an entity", if not, reply "No".
+Then on "is O an entity", reply "Yes".
+
+     On "is O a C?", perform "link exists $o instanceof $c | link transExists ( link get $o instanceof ) isa $c".
+Then on "is O a C?", if not, reply "No".
+Then on "is O a C?", reply "Yes".
+        "is O a C?" implies "O exists?"; if not, reply "O does not exist".
+        "is O a C?" implies "is C a class?"; if not, reply "C is not a class".
+
+# impersonal "What is..."
+# "what is W?" +        W/isa -> X  =>  W is a class.
+# "what is Y?" + Y/instanceof -> Z  =>  Y is a Z.
+# was: On "What is O?" perform "link get $o instanceof | link get $o isa"; on false, say "O is an entity" otherwise "O is a ...".
+     On "What is O?", think "get link O instanceof!".
+#Then on "What is O?", if not, reply "i do not know". #-- default answer
+Then on "What is O?", reply "O is a ...".
+        "What is O?" implies "link O isa does not exist?"; if not, reply "O is a class".
+        "What is O?" implies "O exists?"; if not, reply "O does not exist".
+# = isa END =========

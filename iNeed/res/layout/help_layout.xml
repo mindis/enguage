@@ -1,0 +1,13 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/helpScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <TextView
+        android:id="@+id/helpContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/helpContent"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</ScrollView>

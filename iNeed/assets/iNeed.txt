@@ -1,0 +1,64 @@
+####################################################
+####################################################
+### 
+### I need X
+### (c) yagadi, 2013.
+### 
+####################################################
+####################################################
+# Six main third-person utterances
+     On "X needs PHRASE-Y", perform "variable set subject X". # subject is use in populating list
+Then on "X needs PHRASE-Y", perform "list exists X needs Y".
+Then on "X needs PHRASE-Y", reply "I know".
+Then on "X needs PHRASE-Y", if not, perform "list add X needs Y".
+Then on "X needs PHRASE-Y", reply "ok, X needs Y".
+
+     On "X does not need PHRASE-Y", perform "variable set subject X".
+Then on "X does not need PHRASE-Y", perform "list removeAll X needs Y".
+Then on "X does not need PHRASE-Y", if not, reply "No, X does not need Y". # this -> Y? Y="the y" needs to be Y="any y"
+Then on "X does not need PHRASE-Y", reply "ok".
+
+     On "what does X need", perform "variable set subject X".
+Then on "what does X need", perform "list get X needs".
+Then on "what does X need", if not, reply "X does not need anything".
+Then on "what does X need", reply "X needs ...".
+
+     On "does X need PHRASE-Y", perform "list exists X needs Y".
+Then on "does X need PHRASE-Y", if not, reply "no, X does not need Y".
+Then on "does X need PHRASE-Y", reply "yes, X needs Y".
+
+On "X has PHRASE-Y.", think "X does not need Y".
+     On "X has everything.", perform "list delete X needs".
+Then on "X has everything.", reply "ok".
+
+# 12 first person utterances
+On "I        need        PHRASE-X", think "_user needs X".
+On "help", reply "add items to the list".
+
+On "I do not need        PHRASE-X", think "_user does not need X".
+On "I        have        PHRASE-X", think "_user does not need X".
+On "I        have got    PHRASE-X", think "_user does not need X".
+On "         clear the       list", think "_user has everything".
+On "I        have got  everything", think "_user has everything".
+On "I        have      everything", think "_user has everything".
+On "I do not need        anything", think "_user has everything".
+On "help", reply "clear the list".
+
+On "I        have to     PHRASE-X", think "_user needs to X".
+On "I do not have to     PHRASE-X", think "_user does not need to X".
+On "I        need to     PHRASE-X", think "_user needs to X".
+On "I        have to get PHRASE-X", think "_user needs X".
+On "I        need to get PHRASE-X", think "_user needs X".
+On "I do not have to get PHRASE-X", think "_user does not need X".
+On "I do not need to get PHRASE-X", think "_user does not need X".
+
+On                   "?", think "what does _user need".
+On "what  do   i   need", think "what does _user need".
+On "help", reply "find out what is on the list".
+
+On "do I  need PHRASE-X", think "does _user need X".
+On "help", reply "find out if something specific is on the list".
+
+On "We need PHRASE-X", think "I need X".
+
+Enable undo. # do this at the end to expediate startup!

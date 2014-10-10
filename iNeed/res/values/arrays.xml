@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string-array name="oBMode_entries">
+		<item>Direct</item>
+		<item>Preview</item>	    
+	</string-array>
+	<string-array name="oBMode_values">
+		<item>direct</item>
+		<item>preview</item>
+	</string-array>
+</resources>

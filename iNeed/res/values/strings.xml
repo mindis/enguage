@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iNeed</string>
+    <string name="version_id">1.00</string>
+    <string name="edit_message">I need X/I have X/What do I need?</string>
+    <string name="okButton">OK</string>
+    <string name="help">Help</string>
+    <string name="opMode">Operating Mode</string>
+    <string name="settings">Settings</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="phContent">phContent</string>
+    <string name="helpContent">If you see this help is not configured correctly.</string>
+    <string name="helpPrefTitle">Be more helpful</string>
+    <string name="helpPrefDesc">Display help on startup, offer aural reminder</string>
+    <string name="helpOnStartup">Show help on startup</string>
+    <!-- string name="admob_id">ca-app-pub-6919442542698397/4530614264</string -->
+</resources>

@@ -1,0 +1,86 @@
+##
+##
+## The concept of RELATIVEs
+##
+# To understand relative values, you first need to understand opposites.
+
+     On "X is relative to Y.", perform "!attribute exists relative $x".
+Then on "X is relative to Y.", if not, reply "X is already an opposite".
+Then on "X is relative to Y.", perform "!attribute exists relative $y".
+Then on "X is relative to Y.", if not, reply "Y is already an opposite".
+Then on "X is relative to Y.", perform "attribute set relative $x $y".
+Then on "X is relative to Y.", perform "attribute set relative $y $x".
+Then on "X is relative to Y.", reply "Ok".
+        "X is relative to Y." implies "X is the opposite of Y". # a relative is an opposite.
+
+# test case
+taller is relative to shorter.
+
+## two LONG THANs -- applicable only to relative values:
+
+#First LONG THAN: set than: "x is rel than y." - needs tidying!
+#	<than perform="!link transExists $obj1 $rel $obj2 | 'I know.'"
+#				"& link delete $obj2 $rel $obj1 | 'cant delete ' $obj1 ' ' $rel ' ' $obj2 "
+#				"& !link transExists $obj2 $rel $obj1 | '' $obj2 ' is ' $rel ' than ' $obj1 '.'"
+#				"& !attribute exists relative $rel | "
+#				"   (link delete $obj1 (attribute get relative $rel) $obj2 "
+#				"    & !link transExists $obj1 (attribute get relative $rel) $obj2     | "
+#				"      '' $obj2 ' is ' (attribute get relative $rel) ' than ' $obj1 '.'  "
+#				"    & link set $obj2 (attribute get relative $rel) $obj1               )"
+#				"& link set $obj1 $rel $obj2 "
+#				"& 'Ok.'">
+#		<obj1/> is <rel/> than <obj2/>.</than>
+
+# first pickup set relative values for me, you and X
+On "You are R than me.", think "_HOST is R than _USER".
+On "You are R than X.",  think "_HOST is R than X".
+On "X is R than me.",    think "X is R than _USER".
+On "I am R than you.",   think "_USER is R than _HOST".
+On "I am R than X.",     think "_USER is R than X".
+
+On "X is R than you.", think "X is R than $HOST".
+
+     On "X is R than Y.", perform "!link transExists $x $r $y".
+Then on "X is R than Y.", if not, reply "I know".
+Then on "X is R than Y.", perform "link delete $y $r $x".
+Then on "X is R than Y.", if not, reply "cannot delete X R Y".
+Then on "X is R than Y.", perform "!link transExists $y $r $x".
+Then on "X is R than Y.", if not, reply "Y is  R than X".
+Then on "X is R than Y.", perform "!attribute exists relative $r | (link delete $x (attribute get relative $r) $y & !link transExists $x (attribute get relative $r) $y | '' $y ' is ' (attribute get relative $r) ' than ' $x '.' & link set $y (attribute get relative $r) $x ) & link set $x $r $y & 'Ok.'".
+        "X is R than Y." implies "Value R of relative exists?"; if not, reply "R is not a relative value".
+        "X is R than Y." implies "X exists?"; if not, reply "X does not exist".
+        "X is R than Y." implies "Y exists?"; if not, reply "Y does not exist".
+
+#Second LONG THAN: get than: "is x rel than y?"
+#	<than perform="!link transExists $obj1 $rel $obj2 | 'Yes.'"
+#				 "& !link transExists $obj2 $rel $obj1 | 'No.'"
+#				 "& attribute exists relative $rel | 'I don`t know.'"
+#				 "& !link transExists $obj1 (attribute get relative $rel) $obj2 | 'No.' "
+#				 "& !link transExists $obj2 (attribute get relative $rel) $obj1 | 'Yes.' "
+#				 "& 'I don`t know.'">
+#		Is <obj1/> <rel/> than <obj2/>?</than>
+
+# first pick up personable queries, before is X REL than Y?"...
+On "Is X REL than me?",  think "is X REL than $USER?".
+On "Is X REL than you?", think "is X REL than $HOST?".
+
+     On "Is X REL than Y?", perform "!link transExists $x $rel $y".
+Then on "Is X REL than Y?", if not, reply "Yes".
+Then on "Is X REL than Y?", perform "!link transExists $y $rel $x".
+Then on "Is X REL than Y?", if not, reply "No".
+Then on "Is X REL than Y?", perform "attribute exists relative $rel".
+Then on "Is X REL than Y?", if not, reply "I do not know".
+Then on "Is X REL than Y?", perform "!link transExists $x (attribute get relative $rel) $y".
+Then on "Is X REL than Y?", if not, reply "No".
+Then on "Is X REL than Y?", perform "!link transExists $y (attribute get relative $rel) $x".
+Then on "Is X REL than Y?", if not, reply "Yes".
+Then on "Is X REL than Y?", reply "I do not know".
+        "Is X REL than Y?" implies "X exists?"; if not, reply "X does not exist".
+        "Is X REL than Y?" implies "Y exists?"; if not, reply "Y does not exist".
+
+# six equivs (two above you/me me/you) x/you x/me me/x you/x
+On "Am I REL than you?", think "is $USER REL than $HOST?".
+On "Are you REL than me?", think "is $HOST REL than $USER?".
+On "Am I REL than X?", think "is $USER REL than X?".
+On "Are you REL than X?", think "is $HOST REL than X?".
+# REL END

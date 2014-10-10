@@ -1,0 +1,23 @@
+<xml>
+	<config DNU="I do not understand"
+			DNK="I do not know"
+			YES="Yes"
+			NO="No"
+			IK="I know"
+			TERMS=". ? !"
+			VALUESEP="+"
+			REPEATFORMAT="I said, ... ."
+			CONJUNCTIONS=", and or"
+			REFERENCERS="the"
+			LISTFORMATSEP=":"
+			ANDLISTFORMAT=", :, and "
+			ORLISTFORMAT=", :, or " >
+			
+		<concepts>
+			<concept id="test"              op="ignore"/>
+			<concept id="colloquialisms"    op="load"/>
+			<concept id="appControl"        op="load"/>
+			<concept id="iNeed"             op="load"/>
+		</concepts>
+	</config>
+</xml>

@@ -1,0 +1,223 @@
+# Conceptualisation...
+# Attempting to put all the "perform"s together, as the form the conceptualisation of the
+# state of affairs, and work subtly different to other analysis rules. return 0/1/"chs"
+
+On "who is X?", reply "X is X".
+
+# was reference.txt:
+# References...
+#     On "set X to Y.", perform "link set $x $y".
+#Then on "set X to Y.", reply "ok".
+
+#these should be overridden...
+     On "X is Y.", perform "link exists $x $y".
+Then on "X is Y.", reply "I know".
+Then on "X is Y.", if not, perform "link set $x $y".
+Then on "X is Y.", reply "ok".
+
+     On "is X Y?", perform "link exists $x $y".
+Then on "is X Y?", if not, reply "no".
+Then on "is X Y?", reply "yes".
+
+On "X is Y?", think "is X Y?".
+
+# General value...
+     On "X is?", perform "link get $x".
+Then on "X is?", reply "X is ...".
+# ...References
+
+# Entities...
+# TODO: X refers to an entity name. This could have embedded spaces if it were a name.
+# so, create PHRASE-X and get delete X to see if "X ..." is an entity.
+# perhaps:If X matches a file "the "..., keep adding chars to X?
+# think more?
+# OR: on create PHRASE-X, translate nominal spaces to "_"
+#     on subsequent tagMatching() treat nominal space as a potential _ ?
+# OR: e.g. On "delete the entity PHRASE-X", think "delete USCORE-X!"
+# perhaps we need to add that 'think "X"' will auto underscore, and 'think "PHRASE-X"' will keep its original spacing.
+     On "create X!", perform "entity create $x".
+Then on "create X!", if not, reply "X already exists". 
+Then on "create X!", reply "ok".
+
+     On "X exists?", perform "entity exists $x".
+Then on "X exists?", if not, reply "no".
+Then on "X exists?", reply "yes".
+
+     On "ignore X!", perform "entity ignore $x".
+Then on "ignore X!", if not, reply "cannot ignore X".
+Then on "ignore X!", reply "ok".
+
+     On "restore X!", perform "entity restore $x".
+Then on "restore X!", if not, reply "cannot restore X".
+Then on "restore X!", reply "ok".
+
+     On "delete X!", perform "entity delete $x".
+Then on "delete X!", if not, reply "cannot delete X".
+Then on "delete X!", reply "ok".
+
+     On "X and Y are entities.", perform "entity create $x & entity create $y".
+Then on "X and Y are entities.", if not, reply "I know".
+Then on "X and Y are entities.", reply "Ok".
+
+#...in other words
+     On "X is an entity", think "create X!".
+Then on "X is an entity", if not, reply "I know".
+Then on "X is an entity", reply "ok".
+
+#     On "there is an entity called X?", think "X exists?".
+#Then on "there is an entity called X?", if not, reply  "no". # necessary? 
+#Then on "there is an entity called X?", reply "yes".         # necessary? 
+
+#     On "Is X an entity", think "X exists?".
+#Then on "Is X an entity", if not, reply "I do not know of X".
+#Then on "Is X an entity", reply "Yes".
+
+On "There are PLURAL-X.", think "X is an entity".
+On "Is X an entity?", think "Is there X?".
+
+#     On "create component X Y!", perform "entity create component $x $y".
+#Then on "create component X Y!", if not, reply "I know".
+#Then on "create component X Y!", reply "ok".
+
+## Attributes... ###############################################
+# new -- numeric -----------------------------------------------
+     On "increase X Y by V!", perform "numeric increase $x $y $v".
+Then on "increase X Y by V!", if not, reply "error increasing numeric".
+Then on "increase X Y by V!", reply "ok".
+
+     On "decrease X Y by V!", perform "numeric decrease $x $y $v".
+Then on "decrease X Y by V!", if not, reply "error decreasing numeric".
+Then on "decrease X Y by V!", reply "ok".
+# new -- numeric -----------------------------------------------
+
+
+# the usual...
+     On "set value X Y PHRASE-Z!", perform "value set $x $y $z".
+Then on "set value X Y PHRASE-Z!", if not, reply "cannot set value".
+Then on "set value X Y PHRASE-Z!", reply "ok".
+
+     On "add value X Y PHRASE-Z!", perform "value add $x $y $z".
+Then on "add value X Y PHRASE-Z!", if not, reply "cannot add value".
+Then on "add value X Y PHRASE-Z!", reply "ok".
+
+     On "remove value X Y PHRASE-Z!", perform "value removeAll $x $y $z".
+Then on "remove value X Y PHRASE-Z!", if not, reply "cannot remove all values".
+Then on "remove value X Y PHRASE-Z!", reply "ok".
+
+     On "get value X Y!", perform "value get $x $y".
+Then on "get value X Y!", reply "...".                   # necessary?
+
+     On "get value X Y Z!", perform "value get $x $y / $z".
+Then on "get value X Y Z!", reply "...".                   # necessary?
+
+     On "value PHRASE-X exists?", perform "value exists $x".
+Then on "value PHRASE-X exists?", if not, reply "no". # necessary? 
+Then on "value PHRASE-X exists?", reply "yes".        # necessary? 
+
+     On "delete value X Y!", perform "value delete $x $y".
+Then on "delete value X Y!", if not, reply "cannot delete X".
+then on "delete value X Y!", reply "ok".
+
+     On "value X Y does not exist?", perform "!value exists $x $y".
+Then on "value X Y does not exist?", if not, reply "no".
+Then on "value X Y does not exist?", reply "yes".
+
+     On "value X Y Z does not exist?", perform "!value exists $x $y $z".
+Then on "value X Y Z does not exist?", if not, reply "no".
+Then on "value X Y Z does not exist?", reply "yes".
+
+## ...in other words
+On "value Y of X exists?", think "value X Y exists?".
+
+     On "the X of Y is Z.", think "set value Y X Z!".
+Then on "the X of Y is Z.", reply "Ok".
+
+     On "what is the X of Y?", think "get member Y X!".
+Then on "what is the X of Y?", reply "the X of Y is ...".
+Then on "what is the X of Y?", if not, reply "I do not know".
+
+On "What X is Y?", think "what is the X of Y?".
+
+On "delete the Y value of X", think "delete value X Y!".
+
+
+## Links...
+     On "destroy link X Y!", perform "link destroy $x $y".
+Then on "destroy link X Y!", if not, reply "cannot destroy link".
+Then on "destroy link X Y!", reply "ok".
+
+     On "destroy link W X Y Z!", perform "link destroy $w $x $y $z".
+Then on "destroy link W X Y Z!", if not, reply "cannot destroy link".
+Then on "destroy link W X Y Z!", reply "ok".
+
+     On "set link X Y Z!", perform "link set $x $y $z".
+Then on "set link X Y Z!", if not, reply "cannot link".
+Then on "set link X Y Z!", reply "ok".
+
+     On "set link W X Y Z!", perform "link set $w $x $y $z".
+Then on "set link W X Y Z!", if not, reply "cannot link".
+Then on "set link W X Y Z!", reply "ok".
+
+     On "get link X Y!",         perform "link get $x $y".
+Then on "get link X Y!", reply "...".
+
+     On "link X Y exists?", perform "link exists $x $y".
+Then on "link X Y exists?", if not, reply "no".
+Then on "link X Y exists?", reply "yes".
+
+     On "link X Y Z exists?" , perform "link exists  $x $y $z".
+Then on "link X Y Z exists?", if not, reply "no".
+Then on "link X Y Z exists?", reply "yes".
+
+     On "link W X Y Z exists?", perform "link exists  $w $x $y $z".
+Then on "link W X Y Z exists?", if not, reply "no".
+Then on "link W X Y Z exists?", reply "yes".
+
+     On "link X Y does not exist?", perform "!link exists $x $y".
+Then on "link X Y does not exist?", if not, reply "no".
+Then on "link X Y does not exist?", reply "yes".
+
+     On "link W X Y Z does not exist?", perform "!link exists $w $x $y $z".
+Then on "link W X Y Z does not exist?", if not, reply "no".
+Then on "link W X Y Z does not exist?", reply "yes".
+
+     On "a link X Y Z exists?", perform "link transExists $x $y $z".
+Then on "a link X Y Z exists?", if not, reply "no".
+Then on "a link X Y Z exists?", reply "yes".
+
+
+## ...in other words
+     On "create a link called Y between X and Z.", think "set link $x $y $z!".
+Then on "create a link called Y between X and Z.", think "set link $z $y $x!".
+Then on "create a link called Y between X and Z.", reply "ok".
+        "create a link called Y between X and Z." implies "X exists?"; if not, reply "X does not exist".
+        "create a link called Y between X and Z." implies "Z exists?"; if not, reply "Z does not exist".
+
+     On "create a link called Y from X to Z.", think "set link X Y Z!".
+Then on "create a link called Y from X to Z.", if not, reply "link set error".
+Then on "create a link called Y from X to Z.", reply "ok".
+        "create a link called Y from X to Z." implies "X exists?"; if not, reply "X does not exist".
+
+On "delete the Y link from X.",        think "destroy link X Y!".
+
+#On "Does - a link called Y from X exist?", think   "link X Y exists?".
+#   "Does - a link called Y from X exist?" implies "X exists?"; if not, reply "X does not exist".
+#On "Does - a link called Y from X not exist?",  think "link X Y does not exist?".
+
+
+## Members - either attr or link...
+     On "get member O M!", perform "value get $o $m | link get $o $m".
+Then on "get member O M!", if not, reply "I do not know".
+Then on "get member O M!", reply "...".
+
+     On "member X Y exists?", perform "value exists $x $y    | link exists $x $y".
+Then on "member X Y exists?", if not, reply "no".
+Then on "member X Y exists?", reply "yes".
+ 
+     On "member X Y Z exists?", perform "value exists $x $y $z | link exists $x $y $z".
+Then on "member X Y Z exists?", if not, reply "no".
+Then on "member X Y Z exists?", reply "yes".
+  
+     On "a member X Y Z exists?", perform "link transAttrExists $x $y $z".
+Then on "a member X Y Z exists?", if not, reply "no".
+Then on "a member X Y Z exists?", reply "yes".

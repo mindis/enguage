@@ -1,0 +1,21 @@
+##
+## The concept of OPPOSITEs.
+##
+
+On "X is the opposite of Y.", think "the opposite of X is Y".
+
+     On "the opposite of X is Y.", think "attribute opposite X does not exist?".
+Then on "the opposite of X is Y.", if not, reply "X is already an opposite".
+Then on "the opposite of X is Y.", think "attribute opposite $y does not exist?".
+Then on "the opposite of X is Y.", if not, reply "Y is already an opposite".
+Then on "the opposite of X is Y.", think "set attribute opposite X Y!".
+Then on "the opposite of X is Y.", think "set attribute opposite Y X!".
+Then on "the opposite of X is Y.", reply "Ok".
+
+     On "What is the opposite of X?", think "get attribute opposite X!".
+Then on "What is the opposite of X?", if not, reply "X does not have an opposite".
+Then on "What is the opposite of X?", reply "the opposite of X is ...".
+        "What is the opposite of X?" implies "opposite exists?"; if not, reply "I do not know of any opposites".
+
+# a test case...
+male is the opposite of female.

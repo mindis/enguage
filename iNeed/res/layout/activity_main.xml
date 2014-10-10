@@ -1,0 +1,32 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/mainLayout"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical" >
+
+	<LinearLayout
+        android:id="@+id/llayout"
+        android:orientation="horizontal"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
+	</LinearLayout>
+
+	<ScrollView
+		android:id="@+id/mainScrollArea"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" >
+		<TextView
+			android:id="@+id/mainText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceMedium" />
+		</ScrollView>
+	<!-- com.google.ads.AdView
+		xmlns:googleads="http://schemas.android.com/apk/lib/com.google.ads"
+		android:id="@+id/ad"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		googleads:adSize="BANNER"
+		googleads:adUnitId="@string/admob_id"  -->
+	</LinearLayout>

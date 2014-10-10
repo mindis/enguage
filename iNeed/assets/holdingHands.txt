@@ -1,0 +1,31 @@
+Holding is an action.
+A person has a hand.
+
+     On "X is holding hands with Y.", think "X is holding Y's hand".
+Then on "X is holding hands with Y.", think "Y is holding X's hand".
+Then on "X is holding hands with Y.", reply "ok".
+        "X is holding hands with Y." implies "Is X a person?"; if not, reply "X is not a person".
+        "X is holding hands with Y." implies "Is Y a person?"; if not, reply "Y is not a person".
+
+On "we are holding hands.", reply "ok".
+   "We are holding hands." implies "$USER is holding hands with $HOST"; if not, reply "I cannot hold your hand".
+   "We are holding hands." implies "$HOST is holding hands with $USER"; if not, reply "you cannot hold my hand".
+
+On "PERSON is not holding hands with me.",  think "PERSON is not holding hands with $USER".
+On "PERSON is not holding hands with you.", think "PERSON is not holding hands with $HOST".
+
+     On "X is not holding hands with Y.", think "is X holding Y's hand?".
+Then on "X is not holding hands with Y.", if not, reply "no, X is not".
+Then on "X is not holding hands with Y.", think "X is not holding Y's hand".
+		
+     On "We are not holding hands.", think "I am not holding your hand".
+Then on "We are not holding hands.", think "You are not holding my hand".
+Then on "We are not holding hands.", reply "ok".
+
+     On "is X holding hands with Y ?", think "is X holding Y's hand?".
+Then on "is X holding hands with Y ?", if not, reply "no".
+Then on "is X holding hands with Y ?", think "is Y holding X's hand?".
+Then on "is X holding hands with Y ?", if not, reply "no".
+Then on "is X holding hands with Y ?", reply "yes".
+
+On "Are we holding hands?", think "are you holding hands with me?".

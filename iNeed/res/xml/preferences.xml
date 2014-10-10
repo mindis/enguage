@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="prefStartupHelp"
+        android:title="@string/helpPrefTitle"
+        android:summary="@string/helpPrefDesc"
+        android:defaultValue="true" />
+    <ListPreference 
+        android:key="oBMode"
+        android:title="@string/opMode"
+        android:entries="@array/oBMode_entries"
+        android:entryValues="@array/oBMode_values"
+        android:defaultValue="direct"/>
+</PreferenceScreen>
