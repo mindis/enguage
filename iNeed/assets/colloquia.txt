@@ -1,0 +1,32 @@
+# N.b. Colloquialisms are not PAS aware so, "X is great" doesn't match onto "martin is great" :(
+# Colloquialism: set it up...
+On "QUOTED-X means QUOTED-Y.", perform "colloquial add Y X".
+
+# ...and use it:
+"I've"    means "I have".
+"doesn't" means "does not".
+"don't"   means "do not".
+"can't"   means "cannot".
+"can not" means "cannot".
+"I'm"     means "i am".
+"I've"    means "i have".
+"I'd"     means "i would".
+"I'll"    means "i will".
+"you're"  means "you are".
+"you'd"   means "you would".
+"you'll"  means "you will".
+"fish and chips" means "fish'n'chips".
+
+On "When user says QUOTED-X user means QUOTED-Y.", perform "user add Y X".
+On "When host says QUOTED-X host means QUOTED-Y.", perform "host add X Y".
+
+When user says   "my" user means "_user's".
+When user says "your" user means "_host's".
+
+# beware: this is order sensitive - should be based on longest first
+When host says "_host's"                      host means "my".
+When host says "_user's"                      host means "your".
+When host says "_user does not need anything" host means "you do not need anything".
+When host says "_user needs"                  host means "you need".
+When host says "_user does not need"          host means "you do not need".
+When host says "_user"                        host means "you".

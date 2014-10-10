@@ -1,0 +1,8 @@
+On "X is the plural of Y", perform "plural exception Y X".
+On "X is the plural ending of words ending in Y",  perform "plural rule Y X".
+
+colloquia is the plural of colloquial.
+
+sses is the plural ending of words ending in ss.
+ia   is the plural ending of words ending in ium.
+ies  is the plural ending of words ending in y.

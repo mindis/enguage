@@ -1,0 +1,37 @@
+On "show help on startup",        perform "preferences set verbose true".
+On "help",                        reply   "be more verbose".
+On "do not show help on startup", perform "preferences set verbose false".
+On "help",                        reply   "be less verbose".
+
+# how to switch between preview and direct mode
+     On " direct",          perform "preferences set oBMode direct".
+Then on " direct",          reply   "ok, direct mode is now on".
+     On "help",             reply   "turn on the direct mode".
+     On "preview",          perform "preferences set oBMode preview".
+Then on "preview",          reply   "ok, preview mode is now on".
+     On "help",             reply   "turn on the preview mode".
+     On "direct on",        think   "direct".
+     On "direct off",       think   "preview".
+     On "preview mode",     think   "preview".
+     On "direct mode",      think   "direct".
+     On "direct mode on",   think   "direct".
+     On "direct mode off",  think   "preview".
+     On "preview off",      think   "direct".
+     On "preview on",       think   "preview".
+     On "preview mode off", think   "direct".
+     On "preview mode on",  think   "preview".
+
+     On "bigger text.", perform "numeric increase device textSize 4".
+Then on "bigger text.", reply "ok, text should now be bigger".
+     On "help", reply "increase the size of the text".
+     On "larger text.", think "bigger text".
+
+     On "smaller text.", perform "numeric decrease device textSize 4".
+Then on "smaller text.", reply "ok, text should now be smaller".
+     On "help", reply "reduce the size of the text".
+
+# these are part of the engine, really.
+On        "repeat", think "say again".
+On "please repeat", think "say again".
+On "say it again",  think "say again".
+On "no", think "undo".
