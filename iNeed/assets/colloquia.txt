@@ -1,4 +1,4 @@
-# N.b. Colloquialisms are not PAS aware so, "X is great" doesn't match onto "martin is great" :(
+# N.b. Colloquia are not PAS aware so, "X is great" doesn't match onto "martin is great" :(
 # Colloquialism: set it up...
 On "QUOTED-X means QUOTED-Y", perform "colloquial add Y X".
 On "PHRASE-X means PHRASE-Y", perform "colloquial add Y = X".
@@ -18,8 +18,8 @@ On "PHRASE-X means PHRASE-Y", perform "colloquial add Y = X".
 "you'll"  means "you will".
 "fish and chips" means "fish'n'chips".
 
-On "When user says QUOTED-X user means QUOTED-Y.", perform "user add Y X".
-On "When host says QUOTED-X host means QUOTED-Y.", perform "host add X Y".
+On "When user says QUOTED-X user means QUOTED-Y", perform "user add Y X".
+On "When host says QUOTED-X host means QUOTED-Y", perform "host add X Y".
 
 When user says   "my" user means "_user's".
 When user says "your" user means "_host's".

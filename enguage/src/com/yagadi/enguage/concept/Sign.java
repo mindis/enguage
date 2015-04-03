@@ -2,12 +2,14 @@ package com.yagadi.enguage.concept;
 
 import java.util.ArrayList;
 
+import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Reply;
 import com.yagadi.enguage.sofa.Attribute;
 import com.yagadi.enguage.util.Audit;
 
 public class Sign extends Tag {
-	static Audit audit = new Audit("Sign");
+	private static Audit audit = new Audit("Sign");
+	private static boolean debug = Enguage.runtimeDebugging; 
 
 	/*  The complexity of a sign, used to rank signs in a repertoire.
 	 *  "the eagle has landed" comes before "the X has landed", BUT
@@ -73,14 +75,14 @@ public class Sign extends Tag {
 		name( "pattern" );
 	}
 	public Reply interpret() {
-		//audit.traceIn( "interpret", null );
+		if (debug) audit.traceIn( "interpret", null );
 		ArrayList<Attribute> a = attributes();
 		int i = -1;
 		Reply r = new Reply();
 		while (!r.isDone() && a.size() > ++i) {
 			String name  = a.get( i ).name(),
 			       value = a.get( i ).value();
-			//audit.debug( name +"='"+ value +"'" );
+			if (debug) audit.debug( name +"='"+ value +"'" );
 			r = name.equals( Engine.NAME ) ?
 					new Engine(      name, value ).mediate( r )
 				: name.equals( Autopoiesis.APPEND )  ||
@@ -90,7 +92,7 @@ public class Sign extends Tag {
 				: // finally, perform, think, say...
 					new Intention(   name, value ).mediate( r );
 		}
-		//audit.traceOut( r.toString() );
+		if (debug) audit.traceOut( r.toString() );
 		return r;
 	}
 	private final static String indent = "    ";

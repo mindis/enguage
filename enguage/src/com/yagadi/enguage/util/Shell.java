@@ -1,23 +1,25 @@
 package com.yagadi.enguage.util;
 
-import java.io.*;
-
-import com.yagadi.enguage.util.Strings;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 abstract public class Shell {
 
+	static  Audit audit = new Audit( "Shell" );
+	
 	public static final String SUCCESS = "TRUE";	
 	public static final String FAIL    = "FALSE";
 		
 	abstract public String interpret( Strings argv ) ;
-	
 	
 	static public Strings terminators = new Strings( ". ? !" );
 	static public void    terminators( Strings a ){ terminators = a; }
 	static public Strings terminators() { return terminators; }
 	static public boolean isTerminator( String s ) { return Strings.contain( terminators(), s ); }
 	static public String  terminatorIs( Strings a ){ return (null != a) && a.size()>0 ? a.get( a.size() -1) : ""; }
-	static public boolean isTerminated( Strings a ) {
+	static private boolean isTerminated( Strings a ) {
 		boolean rc = false;
 		if (null != a) {
 			int last = a.size() - 1;
@@ -30,18 +32,11 @@ abstract public class Shell {
 			a.remove( a.size() - 1 );
 		return a;
 	}
-	static public String stripTerminator( String a ) {
-		return stripTerminator( new Strings( a )).toString( Strings.SPACED );
-	}
-	static public Strings addTerminator( Strings a, String term ) {
-		if (!isTerminated( a ) && null != term)
-			a.add( term );
+	static public Strings addTerminator( Strings a, String terminator ) {
+		a.add( terminators.contains( terminator ) ? terminator : terminators.get( 0 ));
 		return a;
 	}
-	static public Strings addTerminator( Strings a ) { return addTerminator( a, terminators().get( 0 )); }
-
-	
-	
+	static public Strings addTerminator( Strings a ) { return addTerminator( a, terminators.get( 0 ));}
 	
 	private String  prompt;
 	public  String  prompt() { return prompt; }
@@ -60,7 +55,7 @@ abstract public class Shell {
 	public  Shell  copyright( String wh, String dts ) { who = wh; dates = dts; return this; }
 
 	public Shell( String name ) {
-		name( name ).prompt( "> " ).copyright( "Martin Wheatman", "2001-4, 2011-14" );
+		name( name ).prompt( "> " ).copyright( "Martin Wheatman", "2001-4, 2011-15" );
 	}
 	public Shell( String name, Strings args ) { this( name ); }
 	public void interpret( InputStream fp ) { // reads file stream and "interpret()"s it
@@ -68,6 +63,7 @@ abstract public class Shell {
 		BufferedReader br = null;
 		try {
 			String line;
+			Strings stream = new Strings();
 			br = new BufferedReader( new InputStreamReader( fp ));
 			boolean was = aloud; // so we can reset volume between utterances.
 			while ((line = br.readLine()) != null) {
@@ -77,12 +73,23 @@ abstract public class Shell {
 					if (-1 != i) line = line.substring( 0, i );
 					// will return "cd .." as ["cd", ".", "."], not ["cd" ".."] -- "cd.." is meaningless!
 					// need new stage of non-sentence sign processing
-					Strings input = new Strings( line ); 
-					if (input.size() > 0) {
-						String rc = interpret( input );
-						if (aloud)
-							System.out.println( rc );
-					}
+					stream.addAll( new Strings( line ));
+					ArrayList<Strings> sentences = stream.divide( terminators );
+					if ( sentences.size() > 1 ) {
+						Strings sentence = sentences.remove( 0 );
+						stream = Strings.combine( sentences );
+						if (sentence.size() > 0) {
+							// strip sentence of its terminator, if "."
+							if (sentence.get( sentence.size()-1 ).equals("."))
+								sentence.remove( sentence.size()-1 );
+							// Expand sentence here...
+							ArrayList<Strings> sentenceList = expandSemicolonList( sentence );
+							for (Strings s : sentenceList ) {
+								String rc = interpret( s );
+								if (aloud) System.out.println( rc );
+							}
+							// ...expand sentence here.
+					}	}
 					if (fp==System.in) System.err.print( name() + prompt());
 				}
 				aloud = was;	
@@ -96,4 +103,70 @@ abstract public class Shell {
 	}	}	}
 	public void run() { interpret( System.in ); }
 	//public void run( String[] args ) { interpret( args ); }
-}
+	
+	public static ArrayList<Strings> expandSemicolonList( Strings sentence ) {
+		/*  "on one: do two; do three; and, do four." =>
+		 *  [ "on one, do two.", "and on one, do three.", "and on one, do four." ]
+		 *  "and" many be replace by, for example "or", "then", "also"
+		 */
+		ArrayList<Strings> rc = new ArrayList<Strings>();
+		
+		// create a primary and a list of secondaries
+		boolean isPrimary = true;
+		Strings primary = new Strings(),
+				secondary = new Strings ();
+		for (String s : sentence) {
+			if (s.equals(":")) {
+				isPrimary = false;
+			} else if (s.equals(";")) {
+				rc.add( secondary );
+				secondary = new Strings();
+			} else if (isPrimary) {
+				primary.add( s );
+			} else {
+				secondary.add( s );
+		}	}
+		if (secondary.size() > 0) rc.add( secondary );
+		
+		// if we've found no semi-colon separated list...
+		if (rc.size()==0) {
+			// ...just pass back the original list
+			rc.add( sentence );
+		} else {
+			// remove connector from last in list
+			int rcSz = rc.size();
+			String connector = "";
+			Strings lastList = rc.get( rcSz-1 );
+			if ( lastList.size() > 2 && lastList.get( 1 ).equals( ",") ) {
+				connector=lastList.remove( 0 ); // remove connector
+				lastList.remove( 0 );           // remove ","
+				rc.set( rcSz-1, lastList );     // replace this last item
+			}
+			// re-jig list, adding-in primary and secondary with connector on subsequent lists
+			for (int i=0; i<rcSz; i++) {
+				Strings tmp = new Strings();
+				if (i>0 && !connector.equals(""))
+					tmp.add( 0, connector );
+				tmp.addAll( primary );
+				tmp.add( "," );
+				tmp.addAll( rc.get( i ));
+				rc.set( i, tmp );
+		}	}
+		return rc;
+	}
+	private static void test( String string ) {
+		Strings list = new Strings( string );
+		ArrayList<Strings> listOfLists = expandSemicolonList( list );
+		audit.audit("expanded list is:");
+		for (Strings s : listOfLists ) {
+			audit.audit( ">>>"+ s.toString( Strings.SPACED ) );
+		}
+	}
+	public static void main( String args[]) {
+		test( "I need coffee" );
+		test( "on this: do here; there; and, everywhere" );
+		test( "On \"X needs PHRASE-Y\":"
+				+"	if Y exists in X needs list, reply \"I know\";"
+				+"	if not, add Y to X needs list;"
+				+"	then, reply \"ok, X needs Y\"." ); 
+}	}

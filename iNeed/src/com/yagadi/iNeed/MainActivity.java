@@ -42,7 +42,6 @@ import com.yagadi.enguage.sofa.Variable;
 import com.yagadi.enguage.sofa.tier2.Item;
 import com.yagadi.enguage.sofa.tier2.List;
 import com.yagadi.enguage.util.Audit;
-import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 public class MainActivity extends ActionBarActivity implements TextToSpeech.OnInitListener {
@@ -84,7 +83,7 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 	public String helpPrompt() {
 		return !Engine.helpRun() ?
 				Repertoire.help() /* just say help */
-				: Enguage.e.signs.helpToString(); // what you can say
+				: Enguage.signs.helpToString(); // what you can say
 	}
 
 	public TextToSpeech tts = null;
@@ -132,7 +131,7 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		// TODO: make o an Overlay static?
 		if (null == Enguage.o || !Enguage.o.attached() || null == Enguage.e ) {
 			Enguage.e = new Enguage( this );
-			Enguage.e.loadConfig( Enguage.configFilename );
+			Repertoire.loadConfig( Enguage.configFilename );
 		}
 		drawScreen();
 	}
@@ -213,19 +212,17 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 	public void interpret( String message ) {
 		if (!message.equals("")) {
 			
-			message = Enguage.e.interpret(
-							Shell.addTerminator( new Strings( message ))
-					  );
+			message = Enguage.e.interpret( new Strings( message ));
 
 			// Scrub user input if understood and if preview mode
-			if (editText != null && Enguage.e.lastReplyWasUnderstood())
+			if (editText != null && Enguage.lastReplyWasUnderstood())
 				editText.setText( "" );
 			
 			if (vocalised()) { // Say it
 				tts.speak( message, TextToSpeech.QUEUE_ADD, null );
 				/// this needs to be put into engine!!!
 				if (verboseMode() && // we're showing help, and...
-					!Enguage.e.lastReplyWasUnderstood() // ...we need help
+					!Enguage.lastReplyWasUnderstood() // ...we need help
 				){	initHelp( true );
 					tts.speak( helpPrompt(), TextToSpeech.QUEUE_ADD, null );
 			}	}

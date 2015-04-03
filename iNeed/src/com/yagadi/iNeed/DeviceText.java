@@ -23,8 +23,6 @@ public class DeviceText {
 	private static Audit audit = new Audit ( "DeviceText" );
 	
 	public static Float getSize() {
-		
-		audit.traceIn( "getSize", "" );
 		final float minTextSize = 8f;
 		final float maxTextSize = 36f; // -- or 72?
 		final float defTextSize = 22f;
@@ -32,24 +30,24 @@ public class DeviceText {
 		Numeric   textSizeNumeric = new Numeric( "device", "textSize" );
 		Float textSize = textSizeNumeric.get( defTextSize );
 		if (Float.isNaN( textSize )) {
-			audit.ERROR( "textSize("+ textSize +") is Float.NaN" );
+			audit.ERROR( "DeviceText.get(): textSize("+ textSize +") is Float.NaN" );
 			textSize = defTextSize;
 			textSizeNumeric.set( textSize );
 		} else if (textSize < minTextSize) {
-			audit.ERROR( "textSize("+ textSize +") < minTextSize("+ minTextSize +")" );
+			audit.ERROR( "DeviceText.get(): textSize("+ textSize +") < minTextSize("+ minTextSize +")" );
 			textSize = minTextSize;
 			textSizeNumeric.set( textSize );
 		} else if (textSize > maxTextSize) {
-			audit.ERROR( "textSize("+ textSize +") > maxTextSize("+ maxTextSize +")" );
+			audit.ERROR( "DeviceText.get(): textSize("+ textSize +") > maxTextSize("+ maxTextSize +")" );
 			textSize = maxTextSize;
 			textSizeNumeric.set( textSize );
 		}
-		return audit.traceOut( textSize );
+		return textSize;
 	}
 	public static TextView get( Activity ctx, String name ) {
 		String s = "";
 		if (name.equals( help )) {
-			String rep = (Enguage.e == null || Enguage.e.signs == null) ?  "" : Enguage.e.signs.helpToHtml( Repertoire.def() );
+			String rep = (Enguage.e == null || Enguage.signs == null) ?  "" : Enguage.signs.helpToHtml( Repertoire.def() );
 			String app = Assets.stringFromFileOrAsset( ctx.getAssets(), name );
 			String def = Enguage.e == null || !Repertoire.defaultRepIsLoaded() ? "" :
 				ctx.getString( R.string.visualHelp1 );

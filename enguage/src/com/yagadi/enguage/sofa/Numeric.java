@@ -4,9 +4,9 @@ import java.util.ListIterator;
 
 import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Filesystem;
+import com.yagadi.enguage.util.Number;
 import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
-import com.yagadi.enguage.util.Number;
 
 public class Numeric extends Value {
 	static private Audit audit = new Audit( "Numeric" );
@@ -90,7 +90,8 @@ public class Numeric extends Value {
 				rc = firstChar == '-' || firstChar == '+' ? Shell.FAIL : Shell.SUCCESS;
 				
 			} else if (cmd.equals( "evaluate" )) {
-				Number number = Number.getNumber( a.normalise(), 1 );
+				ListIterator<String> ai = a.normalise().listIterator();
+				Number number = Number.getNumber( ai );
 				rc = number.valueOf() + a.copyAfter( 1 + number.repSize()).toString( Strings.SPACED );
 				
 			} else if (a.size() > 2) {
@@ -104,7 +105,8 @@ public class Numeric extends Value {
 				Numeric n = new Numeric( entity, attribute );
 
 				// [ "4", "+", "3" ] => [ "7" ] ???? at some point!
-				String value = Number.getNumber( a, i ).valueOf(); /* <<<< this could 
+				ListIterator<String> ai = a.listIterator();
+				String value = Number.getNumber( ai ).valueOf(); /* <<<< this could 
 				 * have "another", coz it has context. In practice, this is a single figure for 
 				 * increase or decrease.
 				 */

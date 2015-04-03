@@ -371,19 +371,6 @@ public class Strings extends ArrayList<String> {
 	// [ "a", "$unmatch", ".",  "b" ] => [ "a", "_USER", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
 	// [ "we are holding hands", "."  ] => [ "we", "are", "holding", "hands", "." ] -- jik - just in case!
 	// matches are from tags, *ap contains mixed case - any UPPERCASE items should match matches OR envvars.
-	public ArrayList<Strings> divide( String divisor ) {
-		ArrayList<Strings> divisions = new ArrayList<Strings>();
-		Strings division = new Strings();
-		for (String s : this) {
-			if (s.equals( divisor )) {
-				divisions.add( division );
-				division = new Strings();
-			} else
-				division.add( s );
-		}
-		divisions.add( division );
-		return divisions;
-	}
 	// [ 'some', 'bread', '+', 'fish'n'chips', '+', 'some', 'milk' ], "+"
 	//                                => [  'some bread', 'fish and chips', 'some milk' ]
 	private Strings normalise( String ipSep, String opSep ) {
@@ -499,8 +486,67 @@ public class Strings extends ArrayList<String> {
 		return s; 
 	}
 	
+	// ---------------------------------------------------------
+	// ---------------------------------------------------------
+	/* 
+	 * combine and divide --
+	 * if a single separator, don't need to store that separator, combine just adds it
+	 * if a combination of separators, we need to remember which one it is so it can be added!
+	 * 
+	 */
+	public ArrayList<Strings> divide( Strings terminators ) {
+		// [ "o", "t", ".", "t", "?", "f", "f" ]( ".?!" ) => [["o", "t", "."], ["t", "?"], ["f", "f"]]
+		ArrayList<Strings> divisions = new ArrayList<Strings>();
+		Strings division = new Strings();
+		for (String s : this) {
+			division.add( s );
+			if (terminators.contains( s )) {
+				divisions.add( division );
+				division = new Strings();
+		}	}
+		divisions.add( division );
+		return divisions;
+	}
+	static Strings combine( ArrayList<Strings> as ) {
+		// [["o", "t". "."], ["t", "?"], ["f", "f"]] => [ "o", "t", ".", "t", "?", "f", "f" ]
+		Strings sa = new Strings();
+		for (Strings tmp : as)
+			sa.addAll( tmp );
+		return sa;
+	}
+	// ---------------------------------------------------------
+	public ArrayList<Strings> divide( String sep ) {
+		// [ "o", "t", "&", "t", "?", "&", "f", "f" ]( "&" ) => [["o", "t", "."], ["t", "?"], ["f", "f"]]
+		ArrayList<Strings> divisions = new ArrayList<Strings>();
+		Strings division = new Strings();
+		for (String s : this) {
+			if (sep.equals( s )) {
+				divisions.add( division );
+				division = new Strings();
+			} else {
+				division.add( s );
+		}	}
+		divisions.add( division );
+		return divisions;
+	}
+	static Strings combine( ArrayList<Strings> as, String sep ) {
+		// [["o", "t"], ["t", "?"], ["f", "f"]] => [ "o", "t", "&", "t", "?", "&", "f", "f" ]
+		Strings sa = new Strings();
+		boolean first = true;
+		for (Strings tmp : as) {
+			if (first)
+				first = false;
+			else
+				sa.add( sep );
+			sa.addAll( tmp );
+		}
+		return sa;
+	}
+	// ---------------------------------------------------------
+	// ---------------------------------------------------------
+	
 	public static void main( String args[]) {
-		Audit.turnOn();
+		Audit.turnOn(); //main()
 		audit.audit( "hello, world" );
 		audit.audit( "a: "+ new Strings( "failure won't 'do' 'don't'" ));
 		audit.audit( "b: "+ new Strings( "..........." ));
@@ -517,6 +563,16 @@ public class Strings extends ArrayList<String> {
 		audit.audit("tma:"+(tokenMatch( ELLIPSIS, ELLIPSIS, 0, ELLIPSIS.length() )?"true":"false")+"=>true");
 		audit.audit("tma:"+(tokenMatch( ELLIPSIS, ELLIPSIS, 1, ELLIPSIS.length() )?"true":"false")+"=>false");
 		audit.audit("tma:"+(tokenMatch( ELLIPSIS,     "..", 0,     "..".length() )?"true":"false")+"=>false");
+		
+		a = new Strings( "this is a test sentence. And half a" );
+		ArrayList<Strings> as = a.divide( Shell.terminators() );
+		// as should be of length 2...
+		b = as.remove( 0 );
+		audit.audit( "b is '"+ b.toString() +"'. as is len "+ as.size() );
+		a = Strings.combine( as ); // needs blank last item to add terminating "."
+		audit.audit( "a is '"+ a.toString() +"'. a is len "+ a.size() );
+		a.addAll( b );
+		audit.audit( "a is now '"+ a.toString() +"'." );
 		
 		/* /
 		String s = "this test should pass";

@@ -1,6 +1,7 @@
 package com.yagadi.enguage.concept;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 import com.yagadi.enguage.expression.Reply;
 import com.yagadi.enguage.sofa.Attributes;
@@ -9,8 +10,7 @@ import com.yagadi.enguage.util.Strings;
 
 public class Signs extends ArrayList<Sign> {
 	static final long serialVersionUID = 0l;
-	
-	static  Audit audit = new Audit( "Signs" );
+	private static  Audit audit = new Audit( "Signs" );
 	
 	//private String name = ""; // for debug statements
 	public  Signs( String nm ) { /*name = nm;*/ }
@@ -112,11 +112,14 @@ public class Signs extends ArrayList<Sign> {
 		//		+ " ("+ name +") "
 		//		+ (ignore.size()==0?"":("avoiding "+ignore)));
 		Reply r = new Reply();
-		for (int i=0; i<size() ; i++)
-			if (ignore.contains( i ))
+		int i = -1;
+		ListIterator<Sign> si = listIterator();
+		while (si.hasNext())
+			if (ignore.contains( ++i ))
 				audit.debug( "Signs.skipped during interpret() "+ i );
 			else {
-				Attributes match = get( i ).content().matchValues( utterance );
+				Sign s = si.next();
+				Attributes match = s.content().matchValues( utterance );
 				if (null != match) { // we have found a meaning! So I do understand...!
 					// here: match=[ x="a", y="b+c+d", z="e+f" ]
 					// will here need to spot/translate references x="the queen" -> x="QE2"
@@ -129,7 +132,7 @@ public class Signs extends ArrayList<Sign> {
 					//audit.debug( "Found sign "+ i +":"+ get( i ).content().toLine() +":"+ match.toString() +")");
 					
 					Reply.pushContext( match );
-					r = get( i ).interpret(); // may pass back DNU
+					r = s.interpret(); // may pass back DNU
 					Reply.popContext();
 					// if reply is DNU, this meaning is not appropriate!
 					if (r.getType() != Reply.DNU) {

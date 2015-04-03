@@ -1,8 +1,6 @@
-On "show help on startup",        perform "preferences set hos true".
-On "help",                        reply   "to show help on startup".
-
-On "do not show help on startup", perform "preferences set hos false".
-On "help",                        reply   "to not show help on startup".
+     On "verbose",         perform "preferences get verbose".
+Then on "verbose",         perform "preferences set verbose false".
+Then on "verbose", if not, perform "preferences set verbose true".
 
 On "verbose on",                  perform "preferences set verbose true".
 On "help",                        reply   "to be more verbose".
@@ -11,16 +9,17 @@ On "help",                        reply   "to be less verbose".
 
 On "visual",                      perform "preferences set visual true".
 On "help",                        reply   "to be more verbose".
+
      On "non visual",             perform "preferences set visual false".
 Then on "non visual",             reply   "Ok, initiating non visual features".
      On "help",                   reply   "to be less verbose".
 
 # how to switch between preview and discourse mode
 # valid values for oBMode are discourse and preview -- this utterance should be implemented!
-     On " discourse",       perform "preferences set oBMode discourse".
+     On " discourse",       perform "preferences set preview false".
 Then on " discourse",       reply   "ok, discourse mode is now on".
      On "help",             reply   "to turn on the discourse mode".
-     On "preview",          perform "preferences set oBMode preview".
+     On "preview",          perform "preferences set preview true".
 Then on "preview",          reply   "ok, preview mode is now on".
      On "help",             reply   "to turn on the preview mode".
      On "discourse on",     discourse.

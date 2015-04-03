@@ -1,0 +1,116 @@
+####################################################
+### I need X
+###
+### The latest version of this file can be found at:
+### http://www.yagadi.com/assets/iNeed.txt (c) yagadi.com, 2013-4.
+### 
+####################################################
+
+On "if PHRASE-X, reply PHRASE-Y": X ; then, reply Y.
+
+#proto-list repertoire - if just Y => think="reply 'I know'"
+On "PHRASE-Y exists in X needs list", perform "list exists X needs Y".
+On "add PHRASE-Y to X needs list", perform "list add X needs Y".
+
+####################################################
+# Third-person utterances
+####################################################
+On "X needs PHRASE-Y":
+	if Y exists in X needs list, reply "I know";
+	if not, add Y to X needs list;
+	then, reply "ok, X needs Y".
+
+On "X does not need PHRASE-Y":
+	perform "variable set subject X";
+	perform "list remove X needs Y";
+	if not, reply "No, I do not know what you mean by Y"; # this -> Y? Y="the y" needs to be Y="any y"
+	then, reply "ok, X does not need Y".
+
+On "X does not need any PHRASE-Y":
+	perform "variable set subject X";
+	perform "list removeAny X needs Y"; # "X needs [any] Y"
+	if not, reply "No, I do not know what you mean by Y"; # this -> Y? Y="the y" needs to be Y="any y"
+	then, reply "ok, X does not need any Y".
+
+On "what does X need":
+	perform "variable set subject X";
+	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
+	perform "list get X needs";
+	if not, reply "X does not need anything";
+	then, reply "X needs ...".
+
+On "does X need PHRASE-Y":
+	perform "list exists X needs Y"; # returns 5 cups of coffee???
+	if not, reply "no, X does not need Y";
+	then, reply "yes, X needs Y". # ...then yes, X needs ...
+
+On "X has PHRASE-Y", X does not need Y.
+
+On "X has everything": perform "list delete X needs"; then, reply "ok, X does not need anything".
+
+On "X needs NUMERIC-QUANTITY PHRASE-Y":
+	perform "variable set subject X"; # subject is used in populating list;
+	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
+	perform "list exists X needs Y QUANTITY";  # check for equality with elaborates?
+	reply "I know";
+	if not, perform "list add X needs Y QUANTITY";
+	then, reply "ok, X needs ... ".
+  
+On "X needs NUMERIC-QUANTITY UNIT of PHRASE-Y":
+	perform "variable set subject X"; # subject is used in populating list
+	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
+	perform "list exists X needs Y QUANTITY UNIT"; # simple list check?
+	reply "I know";
+	if not, perform "list add X needs Y QUANTITY UNIT";
+	then, reply "ok, X needs ...".
+
+On "how many UNIT of PHRASE-Y does X need":
+	perform "variable set subject X"; # subject is used in populating list
+	perform "list quantity X needs Y UNIT";
+	then, reply "..., X needs ... UNIT of Y".
+
+On "how many PHRASE-Y does X need":
+	perform "variable set subject X"; # subject is used in populating list
+	perform "list quantity X needs Y";
+	then, reply "..., X needs ... Y".
+
+On "how many PHRASE-Y do I need", how many Y does _user need.
+
+######################################
+# First person utterances
+######################################
+On "I        need        PHRASE-X", _user needs X.
+On "help", reply "to add items to the list".
+On "get                  PHRASE-X", _user needs X.
+On "get         Y        PHRASE-X", Y needs X.
+
+On "I        have to have PHRASE-X", _user needs X.
+
+On "I        have to     PHRASE-X", _user needs to X.
+On "I do not have to     PHRASE-X", _user does not need to X.
+On "I        need to     PHRASE-X", _user needs to X.
+On "I        have to get PHRASE-X", _user needs X.
+On "I        need to get PHRASE-X", _user needs X.
+On "I do not have to get PHRASE-X", _user does not need X.
+On "I do not need to get PHRASE-X", _user does not need X.
+
+On "I do not need        PHRASE-X", _user does not need X.
+On "I do not need any    PHRASE-X", _user does not need any X.
+On "I        have got    PHRASE-X", _user does not need X.
+On "I        have        PHRASE-X", _user does not need X.
+On "         clear the       list", _user has everything.
+On "I        have got  everything", _user has everything.
+On "I        have      everything", _user has everything.
+On "I do not need        anything", _user has everything.
+On "help", reply "to clear the list".
+
+On                   "?", what does _user need.
+On "what  do   I   need", what does _user need.
+On "help", reply "to find out what is on the list".
+
+On "do I  need PHRASE-X", does _user need X.
+On "help", reply "to find out if something specific is on the list".
+
+On "We need PHRASE-X", I need X. # fix for now
+
+Enable undo. # do this at the end to expediate startup!

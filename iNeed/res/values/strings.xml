@@ -19,11 +19,11 @@
     <string name="help0">To get help</string>
     <string name="help1">press the mike button and say help to the speak now screen. </string>
     <string name="help2">then press play</string>
-    <string name="help3"> tap the center of the screen, pause, then say help</string>
+    <string name="help3"> tap the center of the screen, pause, then say help. </string>
     <string name="toSpeak0">To speak</string>
     <string name="toSpeak1">press the mike button </string>
     <string name="toSpeak2">then press play</string>
-    <string name="toSpeak3">tap the center of the screen, pause, then speak</string>
+    <string name="toSpeak3">tap the center of the screen, pause, then speak. </string>
     <string name="helpHint">You can say, help, to get help.</string>
     <string name="visualHelp1Unused">
         For multiple items use &lt;b>&lt;i>X and Y and &#8230;&lt;/i>&lt;/b>&lt;br/>&lt;br/></string>

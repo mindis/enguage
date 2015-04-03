@@ -1972,19 +1972,25 @@ android.support.v7.widget.SuggestionsAdapter:
     172:174:public void close()
 com.yagadi.enguage.Enguage:
     public static final java.lang.String name
-    public static final java.lang.String defaultRepertoire
-    65:65:public static void user(com.yagadi.enguage.expression.Colloquial)
-    205:210:public static void main(java.lang.String[])
+    public static final java.lang.String configFilename
+    public static final boolean startupDebugging
+    public static final boolean runtimeDebugging
+    136:154:public static void main(java.lang.String[])
 com.yagadi.enguage.R
 com.yagadi.enguage.R$drawable
 com.yagadi.enguage.R$string
 com.yagadi.enguage.R$style
 com.yagadi.enguage.concept.Autopoiesis:
+    public static final java.lang.String NAME
     public static final java.lang.String NEW
     public static final java.lang.String APPEND
     public static final java.lang.String PREPEND
+com.yagadi.enguage.concept.Conv
 com.yagadi.enguage.concept.Engine:
     public static final java.lang.String NAME
+    public static final java.lang.String HELP
+    90:90:public static boolean spoken()
+    259:266:public static void main(java.lang.String[])
 com.yagadi.enguage.concept.Intention:
     public static final java.lang.String REPLY
     public static final java.lang.String ELSE_REPLY
@@ -1993,12 +1999,19 @@ com.yagadi.enguage.concept.Intention:
     public static final java.lang.String PERFORM
     public static final java.lang.String ELSE_PERFORM
     public static final java.lang.String FINALLY
-    134:138:public static void main(java.lang.String[])
+    159:163:public static void main(java.lang.String[])
+com.yagadi.enguage.concept.Numeric
 com.yagadi.enguage.concept.Repertoire:
     static final long serialVersionUID
+    public static final java.lang.String PRONUNCIATION
+    public static final java.lang.String PLURALISATION
+    public static final java.lang.String NAME
+    public static final java.lang.String DEFAULT
+    283:297:public static void main(java.lang.String[])
 com.yagadi.enguage.concept.Sign:
     private static final java.lang.String indent
-    47:49:public Sign(java.lang.String,java.lang.String,java.lang.String)
+    74:76:public Sign(java.lang.String,java.lang.String,java.lang.String)
+    106:112:public static void main(java.lang.String[])
     1:1:public bridge synthetic com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tags)
 com.yagadi.enguage.concept.Signs:
     static final long serialVersionUID
@@ -2008,73 +2021,79 @@ com.yagadi.enguage.concept.Tag:
     public static final int ATOMIC
     public static final int START
     public static final int END
+    public static final java.lang.String emptyPrefix
     public static final java.lang.String quoted
     public static final java.lang.String plural
     public static final java.lang.String numeric
     public static final java.lang.String singular
     public static final java.lang.String phrase
     public static final java.lang.String abstr
-    java.lang.String[] postfixAsStrings
-    46:46:boolean xnumeric()
-    50:50:boolean xvalidNumeric(boolean)
-    94:94:public com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tags)
-    188:191:public Tag(com.yagadi.enguage.concept.Tag)
-    241:255:public static void main(java.lang.String[])
+    public com.yagadi.enguage.util.Strings postfixAsStrings
+    89:89:public com.yagadi.enguage.concept.Tag attributes(com.yagadi.enguage.sofa.Attribute)
+    96:96:public com.yagadi.enguage.concept.Tag remove(java.lang.String)
+    107:107:public com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tags)
+    351:354:public Tag(com.yagadi.enguage.concept.Tag)
+    405:425:public static void main(java.lang.String[])
 com.yagadi.enguage.concept.Tags:
-    251:251:public static void main(java.lang.String[])
+    static final long serialVersionUID
+    40:46:public java.lang.String toLine()
+    299:302:private static void printTagsAndValues(com.yagadi.enguage.concept.Tags,java.lang.String)
+    305:357:public static void main(java.lang.String[])
 com.yagadi.enguage.expression.Answer:
-    22:22:public com.yagadi.enguage.expression.Answer separator(char)
-    23:23:public char separator()
-    27:27:public boolean forward()
-    31:31:public java.lang.String[] format()
-    47:49:public Answer(java.lang.String)
-    51:53:public Answer(java.lang.String[],boolean)
-    55:62:public static void main(java.lang.String[])
+    20:20:public com.yagadi.enguage.expression.Answer valuesAdd(java.lang.String)
+    26:26:public com.yagadi.enguage.expression.Answer separator(char)
+    27:27:public char separator()
+    31:31:public boolean forward()
+    57:59:public Answer(com.yagadi.enguage.util.Strings)
+    61:63:public Answer(java.lang.String)
+    69:79:public static void main(java.lang.String[])
 com.yagadi.enguage.expression.Colloquial:
-    64:72:public static void main(java.lang.String[])
+    55:55:public static void user(com.yagadi.enguage.expression.Colloquial)
+    106:115:public static void main(java.lang.String[])
 com.yagadi.enguage.expression.Language:
-    6:6:public Language()
-    73:76:public static java.lang.String[] indefiniteArticleFlatten(java.lang.String[])
+    10:10:public Language()
+    86:89:public static com.yagadi.enguage.util.Strings indefiniteArticleFlatten(com.yagadi.enguage.util.Strings)
 com.yagadi.enguage.expression.Plural:
     public static final java.lang.String NAME
-    6:6:public Plural()
+    9:9:public Plural()
+    111:112:public static void stest(java.lang.String)
+    114:115:public static void ptest(java.lang.String)
+    117:139:public static void main(java.lang.String[])
 com.yagadi.enguage.expression.Reply:
-    public static final java.lang.String hosPref
-    public static final boolean initHosPref
+    private static final java.lang.String verbose
+    private static final boolean initVerbose
     public static final int NO
     public static final int YES
     public static final int DNU
     public static final int NK
     public static final int IK
     public static final int CHS
-    99:99:public static java.lang.String[] orListFormat()
-    117:117:public boolean forward()
-    174:174:public boolean positive()
-    274:291:public static void main(java.lang.String[])
-com.yagadi.enguage.expression.Stringses:
-    8:8:Stringses()
+    65:65:public static java.lang.String failure()
+    97:97:public static com.yagadi.enguage.util.Strings orListFormat()
+    120:120:public boolean forward()
+    189:189:public boolean positive()
+    301:322:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.Activity
 com.yagadi.enguage.sofa.Attribute:
-    11:11:public Attribute(java.lang.String)
-    23:23:public boolean equals(java.lang.String)
+    public static final java.lang.String VALUE_SEP
+    38:38:public java.lang.String value(boolean)
+    57:57:public boolean equals(java.lang.String)
+    102:102:public static java.lang.String attrTest(java.lang.String)
+    107:139:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.Attributes:
     static final long serialVersionUID
-    16:16:public Attributes(com.yagadi.enguage.sofa.Attributes)
-    46:46:public boolean has(java.lang.String,java.lang.String)
-    47:47:public boolean has(java.lang.String)
-    58:64:public java.lang.String getIgnoreCase(java.lang.String)
-    138:161:public static void main(java.lang.String[])
+    19:19:public Attributes(com.yagadi.enguage.sofa.Attributes)
+    77:77:public boolean has(java.lang.String,java.lang.String)
+    203:205:public static com.yagadi.enguage.util.Strings stripValues(com.yagadi.enguage.util.Strings)
+    209:226:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.Entity:
     16:16:public Entity()
-    115:121:public static void main(java.lang.String[])
+    117:123:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.EntityShell
 com.yagadi.enguage.sofa.Link:
-    28:28:public Link()
-    240:246:public static void main(java.lang.String[])
+    27:27:public Link()
+    239:245:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.LinkShell
-com.yagadi.enguage.sofa.List:
-    public static final java.lang.String NAME
-    110:116:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.Numeric:
     public static final java.lang.String NAME
 com.yagadi.enguage.sofa.Overlay:
@@ -2087,69 +2106,89 @@ com.yagadi.enguage.sofa.Overlay:
     static final java.lang.String RENAME_CH
     static final java.lang.String DELETE_CH
     static final java.lang.String OPT_X
-    184:184:public static java.lang.String error()
-    433:442:public static void main(java.lang.String[])
+    188:188:public static java.lang.String error()
+    462:473:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.OverlayShell
 com.yagadi.enguage.sofa.OverlaySpace:
-    17:17:OverlaySpace()
-com.yagadi.enguage.sofa.Path:
-    static final java.lang.String PWD_PROPERTY
-    static final java.lang.String PARENT
-    static final java.lang.String OPT_A
-    static final java.lang.String OPT_X
-    74:74:protected java.lang.String[] names()
-    92:92:public void up()
-    93:93:public boolean isEmpty()
-    94:94:public boolean isAbsolute()
-    95:95:public boolean isRelative()
-    138:145:private java.lang.String filter(java.lang.String)
-    148:164:public void insert(java.lang.String,java.lang.String)
-    165:165:public java.util.ArrayList list()
-    177:179:public static void main(java.lang.String[])
-com.yagadi.enguage.sofa.PathShell
-com.yagadi.enguage.sofa.Pent
+    21:21:OverlaySpace()
+com.yagadi.enguage.sofa.Preferences:
+    25:28:public java.lang.String get(java.lang.String,java.lang.String)
 com.yagadi.enguage.sofa.Series:
     public static final java.lang.String DETACHED
     public static final java.lang.String DEFAULT
-    24:24:Series()
-    50:50:public static boolean xxxdeleteSeries(java.lang.String)
+    28:28:Series()
 com.yagadi.enguage.sofa.Sofa:
     private static final java.lang.String True
     private static final java.lang.String False
-    156:172:public static void main(java.lang.String[])
-com.yagadi.enguage.sofa.Tuple:
-    public static final java.lang.String NAME
-    15:15:public static void sep(java.lang.String)
-    16:16:public static java.lang.String sep()
-    19:19:public Tuple(java.lang.String,java.lang.String)
-    118:124:public static void main(java.lang.String[])
+    185:202:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.Value:
     public static final java.lang.String NAME
     private static final java.lang.String marker
-    119:125:public static void main(java.lang.String[])
+    122:128:public static void main(java.lang.String[])
 com.yagadi.enguage.sofa.ValuesTest
 com.yagadi.enguage.sofa.Variable:
-    5:5:public Variable()
-    12:12:public static void prefix(char)
-    13:13:public static char prefix()
-    67:79:public static void main(java.lang.String[])
+    7:7:public Variable()
+    15:15:public static void prefix(char)
+    16:16:public static char prefix()
+    82:94:public static void main(java.lang.String[])
+com.yagadi.enguage.sofa.tier2.Item:
+    public static final java.lang.String NAME
+    40:40:public Item(java.lang.String)
+    42:44:public Item(com.yagadi.enguage.sofa.tier2.Item)
+    50:50:public com.yagadi.enguage.concept.Tags content()
+    51:51:public com.yagadi.enguage.sofa.Attributes attributes()
+    54:56:private void attributesReplace(java.lang.String,java.lang.String)
+    59:102:public com.yagadi.enguage.sofa.tier2.Item update(com.yagadi.enguage.util.Strings)
+    160:182:public static void main(java.lang.String[])
+com.yagadi.enguage.sofa.tier2.List:
+    public static final java.lang.String NAME
+    23:23:public com.yagadi.enguage.concept.Tags content()
+    24:24:public com.yagadi.enguage.sofa.Attributes attributes()
+    294:294:public static com.yagadi.enguage.util.Strings params(java.lang.String)
+    298:351:public static void main(java.lang.String[])
 com.yagadi.enguage.util.Audit:
     private static final java.lang.String indent
-    57:57:public java.lang.String[] traceOut(java.lang.String[])
     63:69:public static void main(java.lang.String[])
 com.yagadi.enguage.util.Filesystem:
     private static final java.lang.String symLinkExtension
     15:15:public Filesystem()
     29:29:public static boolean createEntity(java.lang.String)
     30:30:public static boolean renameEntity(java.lang.String,java.lang.String)
+com.yagadi.enguage.util.Number:
+    public static final java.lang.String NotANumber
+    231:231:public com.yagadi.enguage.util.Strings array()
+    256:256:public boolean relative()
+    260:260:public boolean positive()
+    264:264:public boolean exact()
+    492:495:private static void numberTest(java.lang.String,java.lang.String)
+    497:501:private static void anotherTest(java.util.ListIterator)
+    503:543:public static void main(java.lang.String[])
+com.yagadi.enguage.util.Path:
+    static final java.lang.String PWD_PROPERTY
+    static final java.lang.String PARENT
+    static final java.lang.String OPT_A
+    static final java.lang.String OPT_X
+    70:70:protected com.yagadi.enguage.util.Strings names()
+    88:88:public void up()
+    89:89:public boolean isEmpty()
+    90:90:public boolean isAbsolute()
+    91:91:public boolean isRelative()
+    134:141:private java.lang.String filter(java.lang.String)
+    144:160:public void insert(java.lang.String,java.lang.String)
+    161:161:public java.util.ArrayList list()
+    175:175:public static void main(java.lang.String[])
+com.yagadi.enguage.util.PathShell
+com.yagadi.enguage.util.Pent
 com.yagadi.enguage.util.Shell:
     public static final java.lang.String SUCCESS
     public static final java.lang.String FAIL
-    23:23:public boolean isAloud()
-    31:31:public java.lang.String copyright()
-    74:74:public void run()
-    75:75:public void run(java.lang.String[])
+    46:46:public boolean isAloud()
+    54:54:public java.lang.String copyright()
+    104:104:public void run()
+    158:164:private static void test(java.lang.String)
+    166:172:public static void main(java.lang.String[])
 com.yagadi.enguage.util.Strings:
+    public static final long serialVersionUID
     public static final int CSV
     public static final int SQCSV
     public static final int DQCSV
@@ -2158,15 +2197,25 @@ com.yagadi.enguage.util.Strings:
     public static final int LINES
     public static final int CONCAT
     public static final int ABSPATH
-    public static final java.lang.String ELLIPSIS
     public static final java.lang.String lineTerm
-    6:6:public Strings()
-    32:32:public static java.lang.String toString(java.util.ArrayList,java.lang.String,java.lang.String,java.lang.String)
-    47:47:public static java.lang.String toString(java.util.ArrayList,int)
-    238:245:public static java.lang.String[] append(java.lang.String[],java.lang.String[])
-    255:261:public static java.lang.String[] copyFrom(java.lang.String[],int)
-    358:378:public static java.lang.String[][] split(java.lang.String[],java.lang.String[])
-    484:573:public static void main(java.lang.String[])
+    public static final java.lang.String AND
+    public static final java.lang.String OR
+    public static final java.lang.String PLUS_ABOUT
+    public static final java.lang.String MINUS_ABOUT
+    public static final java.lang.String PLUS_EQUALS
+    public static final java.lang.String MINUS_EQUALS
+    public static final java.lang.String ELLIPSIS
+    46:50:public Strings(java.lang.String[])
+    211:216:public com.yagadi.enguage.util.Strings removeAll(java.lang.String)
+    234:246:public boolean containsMatched(com.yagadi.enguage.util.Strings)
+    251:256:public com.yagadi.enguage.util.Strings removeAllMatched(java.lang.String)
+    260:266:public com.yagadi.enguage.util.Strings removeFirst(java.lang.String)
+    302:305:public com.yagadi.enguage.util.Strings copyFrom(int)
+    380:403:private com.yagadi.enguage.util.Strings normalise(java.lang.String,java.lang.String)
+    410:410:public com.yagadi.enguage.util.Strings normalise(java.lang.String)
+    463:466:public com.yagadi.enguage.util.Strings trimAll(char)
+    534:543:static com.yagadi.enguage.util.Strings combine(java.util.ArrayList,java.lang.String)
+    549:668:public static void main(java.lang.String[])
 com.yagadi.iNeed.Assets:
     21:21:public Assets()
 com.yagadi.iNeed.BuildConfig
@@ -2174,6 +2223,12 @@ com.yagadi.iNeed.DeviceText:
     public static final java.lang.String help
     21:21:public DeviceText()
 com.yagadi.iNeed.MainActivity:
+    public static final java.lang.String previewMode
+    public static final boolean initPreviewMode
+    public static final java.lang.String visualMode
+    public static final boolean initVisualMode
+    public static final java.lang.String verbose
+    public static final boolean initVerbose
     public static final int REQUEST_SPEECH
     public static final int REQUEST_LANGUAGE
 com.yagadi.iNeed.R

@@ -35,14 +35,18 @@ public class Reply { // a reply is basically a formatted answer
 	static public  boolean isVerbatim() { return verbatim; }
 	static public  void    verbatimIs( boolean val ) { verbatim = val; }
 	
+	static private String strangeThought = "DNU";
+	static public  void   strangeThought( String thought ) { strangeThought = thought; }
+	static public  String strangeThought(){ return strangeThought; }
+
 	static private String dnu = "DNU";
 	static public  void   dnu( String s ) { dnu = s; }
-	static public  String dnu(){ return dnu;}
+	static public  String dnu(){ return dnu; }
 
 	// TODO: these need to be Strings
 	static private String dnk = "DNK";
 	static public  void   dnk( String s ) { dnk = s; }
-	static public  String dnk() { return dnk;}
+	static public  String dnk() { return dnk; }
 
 	static private String ik = "IK";
 	static public  void   ik( String s ) { ik = s; }
@@ -150,10 +154,9 @@ public class Reply { // a reply is basically a formatted answer
 	public  void    doneIs( boolean b ) { done = b; }
 	public  boolean isDone() { return done; }
 
-	public  String say="";
-	public  String say() {return say;}
-	public  void   say( String s ) { say += s+" . "; }
-	public  void   say( Strings sa ) { say( Shell.addTerminator( sa ).toString( Strings.SPACED )); }
+	public  Strings say = new Strings();
+	public  String  say() { return say.toString( Strings.SPACED ); }
+	public  void    say( Strings sa ) { say.addAll( Shell.addTerminator( sa )); }
 	
 	private int type = DNU;
 	private int calculateType() {
@@ -279,6 +282,8 @@ public class Reply { // a reply is basically a formatted answer
 		//if (!Language.apostrophesReq()) fmt = Strings.append( fmt, "'" );
 		fmt.add( "..." );
 		//if (!Language.apostrophesReq()) fmt = Strings.append( fmt, "'" );
+		if (!strangeThought.equals( "" ))
+			fmt.add( " when thinking about "+ strangeThought());
 		
 		format( fmt );
 		answer( utterance.toString( Strings.SPACED ));

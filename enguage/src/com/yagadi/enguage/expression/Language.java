@@ -15,8 +15,9 @@ public class Language {  // English-ism!
 		boolean rc = false;
 		if (null!=a) {
 			int len = a.length();
-			rc = ((a.charAt( 0 ) ==  '"') && (a.charAt( len-1 ) ==  '"'))
-			  || ((a.charAt( 0 ) == '\'') && (a.charAt( len-1 ) == '\''));
+			if (len>1)
+				rc = ((a.charAt( 0 ) ==  '"') && (a.charAt( len-1 ) ==  '"'))
+				  || ((a.charAt( 0 ) == '\'') && (a.charAt( len-1 ) == '\''));
 		}
 		return rc;
 	}

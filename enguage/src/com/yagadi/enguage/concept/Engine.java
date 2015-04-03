@@ -4,48 +4,55 @@ import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Reply;
 import com.yagadi.enguage.sofa.Variable;
 import com.yagadi.enguage.util.Audit;
-import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 /*
  * TODO: Engine should be split into the NAME/value pair and the generic repertoire. Discuss. 
- * * Start by introducing Repertoire.class => Signs (Signs ArrayList of Sign!)
+ *       Start by introducing Repertoire.class => Signs (Signs ArrayList of Sign!)
  */
 public class Engine extends Intention {
-
-	static private Audit audit = new Audit( "Engine" );
+	private static Audit audit = new Audit( "Engine" );
 
 	public static final String NAME = "engine";
 	public static final String HELP = "help";
 	public static final Sign commands[] = {
 		// because these are raw signs, they MUST be terminated by full stops.
-		new Sign().content( new Tag(  "describe ", "x", ".")).attribute( "id", NAME   )
+		new Sign().content( new Tag(  "describe ", "x" )).attribute( "id", NAME   )
 															 .attribute( NAME, "describe X" )
 															 .attribute( HELP, "where x is a repertoire" ),
-		new Sign().content( new Tag("list repertoires.","" )).attribute( "id", NAME   )
+		new Sign().content( new Tag("list repertoires","" )).attribute( "id", NAME   )
 															 .attribute( NAME, "list" )
 															 .attribute( HELP, ""     ),
-		new Sign().content( new Tag(           "help.", "" )).attribute( NAME, "help" ),
-		new Sign().content( new Tag(          "hello.", "" )).attribute( NAME, "hello"),
-		new Sign().content( new Tag(        "welcome.", "" )).attribute( NAME, "welcome"),
-		new Sign().content( new Tag( "what can i say.", "" )).attribute( "id", NAME   )
+		new Sign().content( new Tag(           "help", "" )).attribute( NAME, "help" ),
+		new Sign().content( new Tag(          "hello", "" )).attribute( NAME, "hello"),
+		new Sign().content( new Tag(        "welcome", "" )).attribute( NAME, "welcome"),
+		new Sign().content( new Tag( "what can i say", "" )).attribute( "id", NAME   )
 															 .attribute( NAME, "repertoire"  )
 															 .attribute( HELP, ""            ),
-		new Sign().content( new Tag(   "load ", "NAME", ".")).attribute( NAME,   "load NAME" ),
-		new Sign().content( new Tag( "unload ", "NAME", ".")).attribute( NAME, "unload NAME" ),
-		new Sign().content( new Tag( "reload ", "NAME", ".")).attribute( NAME, "reload NAME" ),
+		new Sign().content( new Tag(   "load ", "NAME" )).attribute( NAME,   "load NAME" ),
+		new Sign().content( new Tag( "unload ", "NAME" )).attribute( NAME, "unload NAME" ),
+		new Sign().content( new Tag( "reload ", "NAME" )).attribute( NAME, "reload NAME" ),
 		//new Sign().attribute( NAME, "save"    ).content( new Tag( "save", "", "" ) ),
 		//new Sign().attribute( NAME, "saveas $NAME" ).content( new Tag("saveas ", "NAME", ".")),
-		new Sign().content( new Tag(    "enable undo.", "" )).attribute( NAME, "undo enable"  ),
-		new Sign().content( new Tag(   "disable undo.", "" )).attribute( NAME, "undo disable" ),
-		new Sign().content( new Tag(           "undo.", "" )).attribute( NAME, "undo"         ),
-		new Sign().content( new Tag(      "say again.", "" )).attribute( NAME, "repeat"       ),
-		new Sign().content( new Tag(     "debug ", "x", ".")).attribute( NAME, "debug X"      ),
-		new Sign().content( new Tag(     "spell ", "x", ".")).attribute( NAME, "spell X"      ),
+		new Sign().content( new Tag(    "enable undo", "" )).attribute( NAME, "undo enable"  ),
+		new Sign().content( new Tag(   "disable undo", "" )).attribute( NAME, "undo disable" ),
+		new Sign().content( new Tag(           "undo", "" )).attribute( NAME, "undo"         ),
+		new Sign().content( new Tag(      "say again", "" )).attribute( NAME, "repeat"       ),
+		new Sign().content( new Tag(     "debug ", "x" )).attribute( NAME, "debug X"      ),
+		new Sign().content( new Tag(     "spell ", "x" )).attribute( NAME, "spell X"      ),
+		/* 
+		 * it is possible to arrive at the following construct:   think="reply 'I know'"
+		 * e.g. "if X, Y", if the instance is "if already exists, reply 'I know'"
+		 * here reply is thought. Should be rewritten:
+		 * representamen: "if X, reply Y", then Y is just the quoted string.
+		 * However, the following should deal with this situation.
+		 */
+		new Sign().content( new Tag( REPLY+" ", "x" ).attribute( Tag.quoted, Tag.quoted ))
+				.attribute( REPLY, "X" ),
 		/* 
 		 * REDO: undo and do again, or disambiguate
 		 */
-		new Sign().content( new Tag( "No ", "x", "").attribute( "phrase", "phrase" ))
+		new Sign().content( new Tag( "No ", "x" ).attribute( "phrase", "phrase" ))
 					.attribute( NAME, "undo" )
 					.attribute( "elseReply", "undo is not available" )
 					/* On thinking the below, if X is the same as what was said before,
@@ -96,14 +103,14 @@ public class Engine extends Intention {
 	 */
 	static private void disambOn( Strings cmd ) {
 		//simply turn disambiguation on if this thought is same as last...
-		audit.debug( "Engine:disambFound():REDOING:"+(disambFound()?"ON":"OFF")+":"+ Enguage.e.lastInput() +" =? "+ cmd +")" );
-		if (	(/*!redoIsOn() &&*/ Enguage.e.lastInput()               .equals( cmd  )) //    X == (redo) X     -- case 1
-		    ||	(/* redoIsOn() &&*/	Enguage.e.lastInput().copyAfter( 0 ).equals( cmd  )  // no X == (redo) X...  -- case 2
-		    				     &&	Enguage.e.lastInput().get(    0    ).equals( "no" )  // ..&& last[ 0 ] = "no"
+		audit.debug( "Engine:disambFound():REDOING:"+(disambFound()?"ON":"OFF")+":"+ Enguage.lastInput() +" =? "+ cmd +")" );
+		if (	(/*!redoIsOn() &&*/ Enguage.lastInput()               .equals( cmd  )) //    X == (redo) X     -- case 1
+		    ||	(/* redoIsOn() &&*/	Enguage.lastInput().copyAfter( 0 ).equals( cmd  )  // no X == (redo) X...  -- case 2
+		    				     &&	Enguage.lastInput().get(    0    ).equals( "no" )  // ..&& last[ 0 ] = "no"
 		)	)	{
-			if (Enguage.e.signs.lastFoundAt() != -1) { // just in case!
-				Enguage.e.signs.ignore( Enguage.e.signs.lastFoundAt() );
-				audit.debug("Engine:disambOn():REDOING: Signs to avoid now: "+ Enguage.e.signs.ignore().toString() );
+			if (Enguage.signs.lastFoundAt() != -1) { // just in case!
+				Enguage.signs.ignore( Enguage.signs.lastFoundAt() );
+				audit.debug("Engine:disambOn():REDOING: Signs to avoid now: "+ Enguage.signs.ignore().toString() );
 				disambFound( true );
 	}	}	}
 	//static private boolean subsequent = false;
@@ -115,10 +122,10 @@ public class Engine extends Intention {
 		if (Engine.disambFound()) { //still adjusting the list!
 			//audit.debug( "Engine:disambOff():COOKED!" );
 			Engine.disambFound( false );
-			Enguage.e.signs.reorder();
+			Enguage.signs.reorder();
 		} else {
 			//audit.debug( "Engine:disambOff():RAW, forget ignores: "+ Enguage.e.signs.ignore().toString());
-			Enguage.e.signs.ignoreNone();
+			Enguage.signs.ignoreNone();
 		}
 		//audit.traceOut();
 	}
@@ -146,16 +153,16 @@ public class Engine extends Intention {
 		if ( cmd.equals( "undo" )) {
 			r.format( "ok" );
 			if (cmds.size() == 2 && cmds.get( 1 ).equals( "enable" )) 
-				Enguage.e.undoEnabledIs( true );
+				Enguage.undoEnabledIs( true );
 			else if (cmds.size() == 2 && cmds.get( 1 ).equals( "disable" )) 
-				Enguage.e.undoEnabledIs( false );
-			else if (cmds.size() == 1 && Enguage.e.undoIsEnabled()) {
+				Enguage.undoEnabledIs( false );
+			else if (cmds.size() == 1 && Enguage.undoIsEnabled()) {
 				if (Enguage.o.count() < 2) { // if there isn't an overlay to be removed
 					audit.debug( "overlay count( "+ Enguage.o.count() +" ) < 2" );
 					r.answer( Reply.no() );
 				} else
 					Enguage.o.reStartTxn();
-			} else if (!Enguage.e.undoIsEnabled())
+			} else if (!Enguage.undoIsEnabled())
 				r.format( Reply.dnu() );
 			else
 				r = unknownCommand( r, cmds );
@@ -205,32 +212,32 @@ public class Engine extends Intention {
 				r.format( "ok" );
 			} else if (cmds.get( 1 ).equals( "show" )) {
 				//Enguage.e.autop.show();
-				Enguage.e.signs.show();
+				Enguage.signs.show();
 				//Enguage.e.engin.show();
 				r.format( "ok" );
 			} else
 				r = unknownCommand( r, cmds );
 
 		} else if ( value.equals( "repeat" )) {
-			if (Enguage.e.lastOutput() == null) {
+			if (Enguage.lastOutput() == null) {
 				audit.audit("Engine:repeating dnu");
 				r.format( Reply.dnu());
 			} else {
-				audit.audit("Engine:repeating: "+ Enguage.e.lastOutput());
+				audit.audit("Engine:repeating: "+ Enguage.lastOutput());
 				r.repeated( true );
 				r.format( Reply.repeatFormat());
-				r.answer( Enguage.e.lastOutput());
+				r.answer( Enguage.lastOutput());
 			}
 			
 		} else if (   cmd.equals( "help"    )) {
 			helpRun( true );
-			r.format( Enguage.e.engin.helpToString( NAME ));
+			r.format( Enguage.engin.helpToString( NAME ));
 
 		} else if (cmd.equals( "hello"   ) ||
 				   cmd.equals( "welcome" )    ) {
 				helpRun( true );
-				if (cmd.equals(  "hello"  )) r.say( "hello" );
-				if (cmd.equals( "welcome" )) r.say( "welcome" );
+				if (cmd.equals(  "hello"  )) r.say( new Strings( "hello" ));
+				if (cmd.equals( "welcome" )) r.say( new Strings( "welcome" ));
 				r.format( Repertoire.help());
 
 		} else if ( cmd.equals( "list" )) {
@@ -238,20 +245,20 @@ public class Engine extends Intention {
 			r.format( "loaded repertoires include "+ Repertoire.names().toString( Reply.andListFormat() ));
 			
 		} else if ( cmd.equals( "describe" ) && cmds.size() >= 2) {
-			String name = Shell.stripTerminator( cmds.copyAfter( 0 )).toString( Strings.CONCAT );
-			r.format( Enguage.e.signs.helpToString( name ));
+			String name = cmds.copyAfter( 0 ).toString( Strings.CONCAT );
+			r.format( Enguage.signs.helpToString( name ));
 			
 		} else if ( cmd.equals( "repertoire" )) {
-			r.format( Enguage.e.signs.helpToString());
+			r.format( Enguage.signs.helpToString());
 			
 		} else
 			r = unknownCommand( r, cmds );
 		return r;
 	}
 	public static void main( String args[]) {
-		Audit.turnOn();
+		Audit.turnOn(); //main()
 		// NB. This test program needs more work.
-		Enguage.e = new Enguage( null );
+		//Enguage eng = new Enguage( null );
 		Reply r = new Reply();
 		Repertoire.load( "iNeed" );
 		Engine e = new Engine( "engine", "list" );

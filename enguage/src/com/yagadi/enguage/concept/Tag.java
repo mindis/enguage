@@ -18,18 +18,20 @@ import com.yagadi.enguage.util.Filesystem;
 import com.yagadi.enguage.util.Strings;
 
 public class Tag {
-	static Audit audit = new Audit( "Tag" );
+	private static Audit audit = new Audit( "Tag" );
+	private static boolean debug = false;
 	
 	public static final int NULL   = 0;
 	public static final int ATOMIC = 1;
 	public static final int START  = 2;
 	public static final int END    = 3;
+	
+	public static final String emptyPrefix = "";
 
 	private int  type = NULL;
 	private int  type() { return type; }
 	private void type( int t ) { if (t>=NULL && t<=END) type = t; }
 
-	
 	public static final String quoted = "quoted";
 	public static final String quotedPrefix = quoted.toUpperCase( Locale.ENGLISH ) + "-";
 	public static final String plural = Plural.NAME; // "plural";
@@ -45,7 +47,7 @@ public class Tag {
 	public boolean quoted() { return attribute( quoted ).equals( quoted );}
 	public boolean phrased() { return attribute( phrase ).equals( phrase );}
 	public boolean pluraled() { return attribute( plural ).equals( plural );}
-	public boolean xnumeric() { return attribute( numeric ).equals( numeric );}
+	//private boolean xnumeric() { return attribute( numeric ).equals( numeric );}
 	
 	public boolean validPlural( boolean isPlural ) { return pluraled() ? isPlural : true; }
 	public boolean validQuote(  boolean isQuoted ) { return   quoted() ? isQuoted : true; }
@@ -54,7 +56,7 @@ public class Tag {
 
 	public Strings prefixAsStrings = new Strings();
 	public Strings prefixAsStrings() { return prefixAsStrings; }
-	public String prefix = "";
+	public String prefix = emptyPrefix;
 	public String prefix(  ) { return prefix; }
 	public Tag    prefix( String str ) {
 		// set this shortcut..
@@ -98,7 +100,7 @@ public class Tag {
 		return this;
 	}
 	
-	private boolean nullTag() { return name.equals("") && prefix.equals(""); }
+	public boolean isNull() { return name.equals("") && prefix.equals( emptyPrefix ); }
 	
 	Tags content = new Tags();
 	public  Tags content() {return content;}
@@ -106,7 +108,7 @@ public class Tag {
 	public  Tag  removeContent( int n ) { return content.remove( n ); }
 	public  Tag  content( int n, Tag t ) { content.add( n, t ); return this; }
 	public  Tag  content( Tag child ) {
-		if (null != child && !child.nullTag()) {
+		if (null != child && !child.isNull()) {
 			type = START;
 			content.add( child );
 		}
@@ -147,7 +149,7 @@ public class Tag {
 		return rc;
 	}*/
 	public void updateAttributes( Tag pattern ) {
-		audit.traceIn( "updateAttributes", pattern.toString() );
+		if (debug) audit.traceIn( "updateAttributes", pattern.toString() );
 		for (Attribute pa : pattern.attributes()) {
 			String value = pa.value(),
 					name = pa.name();
@@ -170,7 +172,7 @@ public class Tag {
 			//append( pa.name(), value );
 			replace( pa.name(), value );
 		}
-		audit.traceOut();
+		if (debug) audit.traceOut();
 	}
 	public int remove( Tag pattern ) {
 		int rc = 0;
@@ -195,7 +197,7 @@ public class Tag {
 		return rc;
 	}
 	public boolean equals( Tag pattern ) {
-		audit.traceIn( "equals", "this="+ toString() +", with="+ pattern.toString());
+		if (debug) audit.traceIn( "equals", "this="+ toString() +", with="+ pattern.toString());
 		boolean rc;
 		if (attributes().size() < pattern.attributes().size()) { // not exact!!!
 			//audit.audit( " T:Size issue:"+ attributes().size() +":with:"+ pattern.attributes().size() +":");
@@ -213,7 +215,7 @@ public class Tag {
 					&& content().equals( pattern.content());
 			//audit.audit( " T:full check returns: "+ rc );
 		}
-		audit.traceOut( rc );
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 	/* <fred attr1="a" attr2="b">fred<content/> bill<content/></fred>.(
@@ -222,7 +224,7 @@ public class Tag {
 	 * 
 	 */
 	public boolean matches( Tag pattern ) {
-		audit.traceIn( "matches", "this="+ toString() +", pattern="+ pattern.toString() );
+		if (debug) audit.traceIn( "matches", "this="+ toString() +", pattern="+ pattern.toString() );
 		boolean rc;
 		if (attributes().size() < pattern.attributes().size()) {
 			//audit.debug( "Too many attrs -> false" );
@@ -239,11 +241,11 @@ public class Tag {
 					&& content().matches( pattern.content());
 			//audit.debug("full check returns: "+ rc );
 		}
-		audit.traceOut( rc );
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 	public boolean matchesContent( Tag pattern ) {
-		audit.traceIn( "matches", "this="+ toString() +", pattern="+ pattern.toString() );
+		if (debug) audit.traceIn( "matches", "this="+ toString() +", pattern="+ pattern.toString() );
 		boolean rc;
 		if (   (content().size()==0 && pattern.content().size()!=0) 
 			|| (content().size()!=0 && pattern.content().size()==0)) {
@@ -256,18 +258,16 @@ public class Tag {
 					&& content().matches( pattern.content());
 			//audit.debug("full check returns: "+ rc );
 		}
-		audit.traceOut( rc );
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 
-	// -- constructors...
-	public Tag() {}
-	
 	// -- tag from string ctor
 	private Tag doPreamble() {
 		int i = 0;
-		String preamble = "";
-		while (i < postfix().length() && '<' != postfix().charAt( i )) preamble += postfix().charAt( i++ );
+		String preamble = emptyPrefix;
+		while (i < postfix().length() && '<' != postfix().charAt( i )) 
+			preamble += postfix().charAt( i++ );
 		prefix( preamble );
 		if (i < postfix().length()) {
 			i++; // read over terminator
@@ -326,6 +326,8 @@ public class Tag {
 		postfix( i == postfix().length() ? "" : postfix().substring( ++i ));
 		return this;
 	}
+	// -- constructors...
+	public Tag() {}
 	public Tag( String cpp ) { // tagFromString()
 		this();
 		postfix( cpp );
@@ -400,6 +402,8 @@ public class Tag {
 	}
 
 	public static void main( String argv[]) {
+		Audit.turnOn();
+		debug = true;
 		Strings a = new Strings( argv );
 		int argc = argv.length;
 		Tag orig = new Tag("prefix ", "util", "posstfix").append("sofa", "show").append("attr","one");

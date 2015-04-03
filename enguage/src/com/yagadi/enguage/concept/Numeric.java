@@ -36,7 +36,7 @@ public class Numeric {
 	public  Numeric exact( boolean b ) { number.exact( b ); return this; }
 
 	public  int     size() { return number.repSize(); }
-	public  Numeric size( int i ) { number.repSize( i ); return this; }
+	//public  Numeric size( int i ) { number.repSize( i ); return this; }
 	
 	private  Numeric append( String s ) { number.append( s ); return this; }
 
@@ -94,7 +94,7 @@ public class Numeric {
 		String token = sa.get( posn );
 		if (token.equals("a") || token.equals("a")) {
 			audit.debug( "Numeric is a <x singular='singular'>" );
-			size( 1 + (posn - from));
+			//size( 1 + (posn - from));
 			append( "1" );
 		} else {
 			// pre-numeric
@@ -147,7 +147,7 @@ public class Numeric {
 		audit.traceOut( "value="+ number().valueOf() );
 	}
 	public static void main( String[] args ) {
-		Audit.turnOn();
+		Audit.turnOn(); //main()
 		Strings sa = new Strings( "what is 1 + 2");
 		Numeric n = new Numeric( sa, 2 );
 		audit.audit( "n is "+ n.toString());

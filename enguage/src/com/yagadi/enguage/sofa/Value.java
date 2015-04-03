@@ -41,7 +41,6 @@ public class Value {
 	// this works..
 	private static final String marker = "this is a marker file";
 	public void  ignore() {
-		audit.debug( "In Ignore()" );
 		if (Filesystem.exists( name( ent, attr, Overlay.MODE_READ ))) {
 			String writeName = name( ent, attr, Overlay.MODE_WRITE );
 			String deleteName = Entity.deleteName( writeName );

@@ -12,6 +12,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.yagadi.enguage.Enguage;
+import com.yagadi.enguage.concept.Repertoire;
 import com.yagadi.enguage.sofa.Preferences;
 
 //* this code was developed from the background example kindly provided by www.androidhive.info
@@ -92,7 +93,7 @@ public class SplashActivity extends Activity {
 		@Override
 		protected Void doInBackground(Void... arg0) {
 			Enguage.e = new Enguage( ctx );
-			Enguage.e.loadConfig( Enguage.configFilename );
+			Repertoire.loadConfig( Enguage.configFilename );
 			return null;
 		}
 		@Override
