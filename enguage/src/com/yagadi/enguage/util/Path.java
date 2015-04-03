@@ -5,30 +5,49 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 
-import com.yagadi.enguage.util.Strings;
+
+class Pent {
+	String name, value; // value is managed in the application code
+	boolean type;
+
+	Pent( String nm, String val, boolean typ ) {
+		name = nm;
+		value = val; //newChars( value );
+		type = typ;
+	}
+	public String  name()  { return name; }
+	public boolean type()  { return type; }
+	public String  value() { return value; }
+	// ------
+	static int pentCmp( Pent p1, Pent p2 ) { return p1.name().compareTo( p2.name()); }
+	static int pentMax( Pent[] p ) {
+		int max=0, tmp;
+		for (int i=0, sz=p.length; i<sz; i++){ if ( max < (tmp = p[ i ].name().length())) max = tmp; }
+		return max;
+}	}
 
 class PathShell extends Shell {
-	PathShell( String[] args ) { super( "Path", args );}
-	public String interpret( String[] utterance ) {
+	PathShell( Strings args ) { super( "Path", args );}
+	public String interpret( Strings utterance ) {
 		String rc = Shell.SUCCESS;
-		int sz = utterance.length;
-		if (utterance[ 0 ].equals( "cd" )) {
-			String[] pathnames = Strings.copyAfter( utterance, 0 );
-			if (!Path.testPath.cd( Strings.toString( pathnames, Strings.CONCAT )))
-				rc = utterance[ 1 ] +": not found" ;
-		} else if ((sz == 1) && (0 == utterance[ 0 ].compareTo( "up" ))) {
+		int sz = utterance.size();
+		if (utterance.get( 0 ).equals( "cd" )) {
+			Strings pathnames = utterance.copyAfter( 0 );
+			if (!Path.testPath.cd( pathnames.toString( Strings.CONCAT )))
+				rc = utterance.get( 1 ) +": not found" ;
+		} else if ((sz == 1) && (0 == utterance.get( 0 ).compareTo( "up" ))) {
 			if (!Path.testPath.cd( Path.PARENT ))
 				rc = Path.PARENT +": not found" ;
-		} else if ((sz == 1) && (0 == utterance[ 0 ].compareTo( "pwd" )))
+		} else if ((sz == 1) && (0 == utterance.get( 0 ).compareTo( "pwd" )))
 			rc = Path.testPath.pwd();
 		else if (sz > 0)
-			rc = "Unknown command: " + Strings.toString( utterance, Strings.SPACED );
+			rc = "Unknown command: " + utterance.toString( Strings.SPACED );
 		
 		return rc;
 }	}
 // =======================
 public class Path {
-	static private Audit audit = new Audit( "Path" );
+	//static private Audit audit = new Audit( "Path" );
 	
 	final static char   PATH_SEP_CHAR = File.separatorChar; 
 	final static String PWD_PROPERTY = "user.dir"; 
@@ -47,29 +66,29 @@ public class Path {
 		return vfname;
 	}
 
-	private   String[] names; // [ "", "home", "martin", "invoices", "invoice.0" ] or [ "..", "ruth" ]
-	protected String[] names() { return names;}
-	private   void     names( String s ){ names = Strings.fromString( s, PATH_SEP_CHAR ); }
-	private   void     names( String[] ss ){ names = ss; }
+	private   Strings names; // [ "", "home", "martin", "invoices", "invoice.0" ] or [ "..", "ruth" ]
+	protected Strings names() { return names;}
+	private   void     names( String s ){ names = new Strings( s, PATH_SEP_CHAR ); }
+	private   void     names( Strings ss ){ names = ss; }
 
 	public Path() { this( System.getProperty( PWD_PROPERTY )); }
 	public Path( String pwd ) {
 		pents = new ArrayList<Pent>();
 		names( pwd == null ? System.getProperty( PWD_PROPERTY ) : pwd );
-		audit.debug( "Path set to "+ Strings.toString( names, Strings.CSV ));
+		//audit.debug( "Path set to "+ names.toString( Strings.CSV ));
 	}
 
 	public String  toString() { return pwd(); }
 	public String       pwd() {
-		return names.length == 0 ? "/" : Strings.toString( names, Strings.PATH );
+		return names.size() == 0 ? "/" : names.toString( Strings.PATH );
 	}
 	
-	public void    pop() { if (0<names.length) names = Strings.removeAt( names, names.length-1 ); } // don't pop leading ""
-	public void    push( String val ) { names = Strings.append( names, val ); }
+	public void    pop() { if (0<names.size()) names.remove( names.size()-1 ); } // don't pop leading ""
+	public void    push( String val ) { names.add( val ); }
 	public void    up() { pop();}
-	public boolean isEmpty() { return names == null || 0 == names.length; } // need arrayEmpty()
-	public boolean isAbsolute() { return 0<names.length && names[ 0 ].equals( "" ); }
-	public boolean isRelative() { return 0<names.length && !names[ 0 ].equals( "" ); }
+	public boolean isEmpty() { return names == null || 0 == names.size(); } // need arrayEmpty()
+	public boolean isAbsolute() { return 0<names.size() && names.get( 0 ).equals( "" ); }
+	public boolean isRelative() { return 0<names.size() && !names.get( 0 ).equals( "" ); }
 
 	//TODO:
 	// cd -/fred => cd ../fred, cd ../../fred, cd ../../../fred etc,
@@ -84,15 +103,15 @@ public class Path {
 		boolean rc = false;
 		// add the dest onto a proposed pwd
 		Path candidate = new Path( pwd() );
-		String[] dests = Strings.fromString( dest, PATH_SEP_CHAR );
-		if (dests.length > 0 && dests[ 0 ].equals( "" )) // absolute
+		Strings dests = new Strings( dest, PATH_SEP_CHAR );
+		if (dests.size() > 0 && dests.get( 0 ).equals( "" )) // absolute
 			candidate.names( dests );
 		else
-			for (int i = 0; i<dests.length; ++i )
-				if (dests[ i ].equals( PARENT ))
+			for (int i = 0; i<dests.size(); ++i )
+				if (dests.get( i ).equals( PARENT ))
 					candidate.pop();
-				else if (!dests[ i ].equals( "." ))
-					candidate.push( dests[ i ]);
+				else if (!dests.get( i ).equals( "." ))
+					candidate.push( dests.get( i ));
 		// see if this proposal exists
 		File f = new File( candidate.pwd() );
 		if (f.isFile())
@@ -113,13 +132,12 @@ public class Path {
 	private ArrayList<Pent> pents; // [ "0.address", "1.client", "3.id", "4.week.0", "4.week.1", ... ]
 	private String filter( String s ) {
 		String str = "";
-		if (null != s)
-			for (int i=0, sz=s.length();
-					i<20
-					&& i<sz
-					&& (Character.isLetterOrDigit( s.charAt( i )) || ' ' == s.charAt( i ));
-					i++)
-				str += s.charAt( i );
+		for (int i=0, sz=s.length();
+				i<20
+				&& i<sz
+				&& (Character.isLetterOrDigit( s.charAt( i )) || ' ' == s.charAt( i ));
+				i++)
+			str += s.charAt( i );
 		return str;
 	}
 	public void insert( String dname, String opts ) { // return list of Pents!!!
@@ -152,6 +170,6 @@ public class Path {
 		p.up();
 		System.out.println( "cwd is "+ p.toString());
 		*/
-		PathShell ps = new PathShell( args );
-		ps.run();
+//		PathShell ps = new PathShell( args );
+//		ps.run();
 }	}

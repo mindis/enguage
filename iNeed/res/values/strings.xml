@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">iNeed</string>
-    <string name="version_id">1.00</string>
+    <string name="version_id">1.2</string>
     <string name="edit_message">I need X/I have X/What do I need?</string>
     <string name="okButton">OK</string>
     <string name="help">Help</string>
-    <string name="opMode">Operating Mode</string>
     <string name="settings">Settings</string>
     <string name="loading">Loading&#8230;</string>
     <string name="phContent">phContent</string>
-    <string name="helpContent">If you see this help is not configured correctly.</string>
-    <string name="helpPrefTitle">Be more helpful</string>
-    <string name="helpPrefDesc">Display help on startup, offer aural reminder</string>
-    <string name="helpOnStartup">Show help on startup</string>
+    <string name="helpContent">If you see this, help is not configured correctly.</string>
+    <string name="visualTitle">Visual</string>
+    <string name="visualDesc">Use the screen to aid interaction. Switch this off for the visually impaired.</string>
+    <string name="previewTitle">Preview</string>
+    <string name="previewDesc">Use keyboard or mic for input. Display/edit it before pressing play button.</string>
+    <string name="verboseTitle">Verbose</string>
+    <string name="verboseDesc">Be more helpful: show help on startup; give more comprehensive replies.</string>
+    <string name="welcome">Welcome.</string>
+    <string name="help0">To get help</string>
+    <string name="help1">press the mike button and say help to the speak now screen. </string>
+    <string name="help2">then press play</string>
+    <string name="help3"> tap the center of the screen, pause, then say help</string>
+    <string name="toSpeak0">To speak</string>
+    <string name="toSpeak1">press the mike button </string>
+    <string name="toSpeak2">then press play</string>
+    <string name="toSpeak3">tap the center of the screen, pause, then speak</string>
+    <string name="helpHint">You can say, help, to get help.</string>
+    <string name="visualHelp1Unused">
+        For multiple items use &lt;b>&lt;i>X and Y and &#8230;&lt;/i>&lt;/b>&lt;br/>&lt;br/></string>
+    <string name="visualHelp1">
+        &lt;b>Hint&lt;/b>: use the same phrase/spelling used for added items on removing them!&lt;br/>
+        &lt;b>Note&lt;/b>: explicitly remove \'I need to X\', with \'I don\'t need to X\'&lt;br/> 
+        </string>
+    <string name="visualHelp2">
+        Say &lt;b>&lt;i>help&lt;/i>&lt;/b> to get help.&lt;br/>&lt;br/></string>
+    <string name="visualHelp3">
+        For further details, 
+        including device control and how to program this language engine, 
+        see &lt;a href=\"www.yagadi.com\">www.yagadi.com&lt;/a>
+    </string>
+    <string name="visualHelp4repNotLoaded">- repertoire not yet loaded -</string>
     <!-- string name="admob_id">ca-app-pub-6919442542698397/4530614264</string -->
 </resources>

@@ -1,3 +1,12 @@
+/*
+ * iNeed - Assets
+ * 
+ * This code is released under the Lesser GPL
+ * - do with it what you will, just keep the below
+ *   copyright for the swathes of code you leave in!
+ * 
+ * (c) yagadi ltd, 2013-4.
+ */
 package com.yagadi.iNeed;
 
 import java.io.File;

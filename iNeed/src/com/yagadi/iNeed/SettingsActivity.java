@@ -1,6 +1,15 @@
+/*
+ * iNeed - SettingsActivity
+ * 
+ * This code is released under the Lesser GPL
+ * - do with it what you will, just keep the below
+ *   copyright for the swathes of code you leave in!
+ * 
+ * (c) yagadi ltd, 2013-4.
+ */
 package com.yagadi.iNeed;
 
-import com.yagadi.enguage.Enguage;
+import com.yagadi.enguage.concept.Repertoire;
 
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -12,7 +21,7 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		setTitle( Enguage.lastLoaded() +": Settings");
+		setTitle( Repertoire.lastLoaded() +": Settings");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) { //i.e. 11
             onCreatePreferenceFragment();
         } else { //Api < 11

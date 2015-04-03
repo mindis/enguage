@@ -1,48 +1,156 @@
 package com.yagadi.enguage.sofa;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 
-import com.yagadi.enguage.util.*;
+import com.yagadi.enguage.util.Audit;
+import com.yagadi.enguage.util.Filesystem;
+import com.yagadi.enguage.util.Path;
+import com.yagadi.enguage.util.Shell;
+import com.yagadi.enguage.util.Strings;
 
 class OverlayShell extends Shell {
-	OverlayShell( String[] args ) { super( "Overlay", args ); }
-	public String interpret( String[] argv ) { return Overlay.interpret( argv ); }
+	OverlayShell( Strings args ) { super( "Overlay", args ); }
+	public String interpret( Strings argv ) { return Overlay.interpret( argv ); }
 }
 
-/*
- * The analysis of this file is all off following the port to Android
- * Ospace contains several series, each series contains several overlays.
+/* The analysis of this file is all off following the port to Android
+ * OverlaySpace contains several series, each series contains several overlays.
  * TODO: sort this out! v1.1?
  */
+class OverlaySpace {
+	public static final String root = Filesystem.root + File.separator + "yagadi.com"; //+"sofa";
+	public static String charsAndInt( String s, int n ) { return s +"."+ n; }
+	
+	//static Series s = null;
+	//attach
+}
 class Series { // relates to hypothetical attachment of series of overlays to fs 
-	//static private Audit audit = new Audit( "Series" );
+	static private Audit audit = new Audit( "Series" );
 
+	static public  final String DETACHED="";
 	static private final String basePointer = File.separator + "reuse";
 	static public  final String DEFAULT = "iNeed"; //"sofa";
 	
-	static private String charsAndInt( String name, int vn ) { return name +"."+ vn; }
-	static private String baseName( String nm ){ return charsAndInt( Overlay.root + File.separator + nm, 0 ) + basePointer; }
+	static private String baseName( String nm ){ return name( nm, 0 ) + basePointer; }
 	
 	static public String base( String nm ) {
-		if (nm==null || nm.equals( Overlay.DETACHED )) return Overlay.DETACHED;
-		String rc = Filesystem.stringFromLink( baseName( nm ));
-		return rc == null ? "" : rc;
+		if (nm==null || nm.equals( DETACHED )) return DETACHED;
+		//audit.debug("Series.base(): Looking for:"+baseName( nm ));
+		return Filesystem.stringFromLink( baseName( nm ));
 	}
 	static public boolean existing( String nm ) {
-		return null != nm && !nm.equals( Overlay.DETACHED ) && null != Filesystem.stringFromLink( baseName( nm ));
+		return null != nm && !nm.equals( DETACHED ) && Filesystem.exists( baseName( nm ));
 	}
 	static public boolean create( String name, String whr ) {
+		//audit.traceIn( "create", "name="+name+", whence="+whr );
+		boolean rc = true;
 		try {
 			Filesystem.stringToLink( baseName( name ), new File( whr ).getCanonicalPath());
 		} catch (IOException e) {
-			System.err.println( "Series.create(): error in canonical path!" );
-			return false;
+			audit.ERROR( "Series.create(): error in canonical path!" );
+			rc = false;
 		}
-		return true;
+		//return audit.traceOut( rc );
+		return rc;
 	}
-	static public boolean deleteSeries( String name ) {
-		return !name.equals( Overlay.DETACHED ) && Filesystem.destroy( Series.baseName( name )); // won't work!
+	static private String name = DETACHED;
+	static public  void   name( String nm ) { name = nm; }
+	static public  String name() { return name; }
+	static public  String name( int vn ) { return OverlaySpace.charsAndInt( OverlaySpace.root + File.separator + name, vn ); }
+	static public  String name( String nm, int vn ) { return OverlaySpace.charsAndInt( OverlaySpace.root + File.separator + nm, vn ); }
+	
+	static private int  number = 0; // series.0, series.1, ..., series.n => 1+n
+	static public  int  number() { return number; } // initialised to 1, for 0th overlay
+	
+	static private int  highest = -1; // series.0, series.1, ..., series.n => 1+n
+	static public  int  highest() { return highest; } // initialised to 1, for 0th overlay
+	
+	static public boolean count() {
+		//audit.traceIn( "count", "" );
+		highest = -1;
+		number = 0;
+		String overlays[] = new File( OverlaySpace.root ).list();
+		if (overlays != null) for (String file : overlays) {
+			//audit.debug( "counting:"+ file );
+			if (   file.length() > name.length()+1
+			    && (name + ".").equals( file.substring( 0, name.length()+1 )) )
+			{
+				number++;
+				int n = Integer.parseInt( file.substring( name.length() + 1));
+				if ( n>highest ) highest = n;
+				//audit.debug( "   counted: "+ number +" overlay(s), highest="+ highest );
+		}	}
+		//return audit.traceOut( highest > -1 );
+		return highest > -1;
+	}
+	static public boolean attached() { return !name.equals( DETACHED ); }
+	static public boolean attach( String series ) {
+		name( series );
+		count(); // we are attached - it may not exist!
+		return Series.attached();
+	}
+	static public void detach() {
+		name( DETACHED );
+		highest = -1;
+		number = 0;
+	}
+	static public void append() {
+		//audit.traceIn( "append", "" );
+		highest++;
+		File overlay = new File( name( highest )); 
+		if (!overlay.mkdir()) {
+			highest--;
+			audit.ERROR( "unable to create "+ overlay.toString());
+		} else {
+			number++;
+			//audit.debug( "created, overlay "+ highest +", count ="+ number );
+		}
+		//audit.traceOut();
+	}
+	static public boolean compact( /* int targetNumber */) {
+		//audit.traceIn( "compact", "combining "+ (number()-1) +" underlays" );
+		/*
+		 * For expediency's sake, this function combines all underlaid  (i.e. protected) overlays
+		 */
+		boolean rc = false;
+		//audit.debug( "top overlay is "+ highest );
+		if (attached() && highest > 1) {
+			File src, dst;
+			for (int overlay=highest()-1; overlay>0; overlay--) {
+				//audit.debug( "COMBINING "+ overlay +" with "+ (overlay-1) );
+				src = new File( name( overlay ));
+				if (src.exists()) {
+					dst = new File( name( overlay-1 ));
+					if (dst.exists()) {
+						// move all new files into old overlay
+						//audit.debug( "dst exist: moving overlay "+ src.toString() +" to "+ dst.toString());
+		    			Filesystem.moveFile( src, dst );
+		    			if (src.exists()) audit.ERROR( src.toString() +" still exists - after MOVE ;(" );
+					} else {
+						//audit.debug( "dst not existing: renaming overlay "+ src.toString() +" to "+ dst.toString());
+						src.renameTo( dst );
+		    			if (!dst.exists()) audit.ERROR( src.toString() +" still doesn't exists - after RENAME ;(" );
+					}
+					count();
+	    			//audit.debug( "number of overlays is now: "+ number() );
+				} //else
+					//audit.debug( "doing nothing: overlay "+ src.toString() +" does not exists" );
+			}
+			// then _rename_ top overlay - will now be ".1"
+			//audit.debug("Now renaming top overlay "+ highest() +" to be 1" );
+			src = new File( name( highest() ));
+			dst = new File( name( 1 ));
+			if (dst.exists()) dst.delete();
+			if (!src.renameTo( dst )) audit.ERROR( "RENAME "+ src.toString()+" to "+ dst.toString() +" FAILED" );
+			//if (src.exists()) audit.debug( src.toString() +" still exists - after RENAME ;(" );
+			// adjust count()
+			count();
+			//audit.debug( "count really is: "+ number() );
+			rc = true;
+		}
+		//audit.traceOut( "combine "+ (rc?"done":"failed") +", count="+ number() +", highest="+ highest() );
+		return rc;
 }	}
 /* --- Q's:
  * could overlays be sparse (e.g. persons.0 persons.5? -- reuse link is in persons.0 could it be persons.<min>?
@@ -51,9 +159,7 @@ class Series { // relates to hypothetical attachment of series of overlays to fs
 public class Overlay {
 	static private Audit audit = new Audit( "Overlay" );
 	
-	public static final String DETACHED="";
 	public static final String DEFAULT = "default";
-	public static final String root = Filesystem.root + File.separator + "yagadi.com"; //+"sofa";
 	
 	final static String MODE_READ   = "r";
 	final static String MODE_WRITE  = "w";
@@ -65,213 +171,81 @@ public class Overlay {
 	final static String OPT_X       ="-x";
 	
 	private Path p;
-	String  path() { return p.toString(); }
-	boolean path( String dest ) {
+	private String  path() { return p.toString(); }
+	private boolean path( String dest ) {
 		boolean rc = true;
 		if (null != dest) {
 			String src = p.pwd();    // remember where we are
-			p.cd( dest );              // do the cd
-			rc = Filesystem.existsEntity( Overlay.fsname( p.pwd(), "r" )); // check destination
+			p.cd( dest );            // do the cd
+			// check destination - might only exist in object space
+			rc = Filesystem.existsEntity( Overlay.fsname( p.pwd(), "r" ));
 			if (!rc) p = new Path( src ); // return to where we were
 		}
 		return rc;
 	}
 
-	private int  number = 0; // series.0, series.1, ..., series.n => 1+n
-	private int  number() { return number; } // initialised to 1, for 0th overlay
-	private int  highest = 0; // series.0, series.1, ..., series.n => 1+n
-	//private int  highest() { return highest; } // initialised to 1, for 0th overlay
-	
-	private boolean count( String series ) {
-		//audit.traceIn( "count", "'"+series+"'" );
-		highest = -1;
-		number = 0;
-		String overlays[] = new File( root ).list();
-		if (overlays != null) for (String file : overlays)
-			if (   file.length() > series.length()+1
-			    && (series + ".").equals( file.substring( 0, series.length()+1 )) )
-			{
-				number++;
-				int n = Integer.parseInt( file.substring( series.length() + 1));
-				if ( n>highest ) highest = n;
-			}
-		//audit.traceOut( number +" overlay(s), highest="+ highest );
-		return highest > -1;
-	}
-	
-	private String name;
-	String series() { return name; }
-	void   series( String nm ) { name = nm; }
 	private static String error = "";
 	public  static String error() { return error; }
 	 
-	private static boolean verbose = false;
-	
 	public Overlay() {
-		name = DETACHED; // start detach()ed;
+		Series.detach(); // start detach()ed;
 		p = new Path( System.getProperty( "user.dir" ));
-		audit.debug( "initial path is "+ System.getProperty( "user.dir" ) +" (p="+ p.toString() +")" );
-		new File( Overlay.root ).mkdir(); // JIC -- ignore result
+		//audit.debug( "initial path is "+ System.getProperty( "user.dir" ) +" (p="+ p.toString() +")" );
+		new File( OverlaySpace.root ).mkdir(); // JIC -- ignore result
+		/*
+		 * For VERSION 2 - was plain Series.DEFAULT...
+		 * If we put in the following it should result in /yagadi.com being overlaid
+		 * with base overlay being /yagadi.com/yagadi.com.0  
+		 * This will make it incompatible with version 1 ( as its series is iNeed ) 
+		Series.create( new File( System.getProperty("user.dir")).getName(), p.toString() );
+		 */
 		Series.create( Series.DEFAULT, p.toString() );
 	}
-	public Overlay( boolean v ) {
-		this();
-		verbose = v;
-	}
 
-	private static String charsAndInt( String s, int n ) { return s +"."+ n; }
+	public int count() { return Series.number(); }
+	public String toString() { return "[ "+ OverlaySpace.root +", "+ Series.name() +"("+ Series.number() +") ]"; }
 	
-	public String version( int vn ) { return charsAndInt( series(), vn ); }
-	public String toString() { return "[ "+ root +", "+ series() +"("+ number() +") ]"; }
+	// called from Enguage...
+	public boolean attached() { return Series.attached(); }
+	//static public boolean attach( String series ) { return Series.attach( series ); }
+	//static public void detach() { Series.detach(); }
 	
-	public boolean attached() { return !series().equals( DETACHED ); }
-	public boolean attach( String series ) {
-		series( series );
-		count( series ); // we are attached - it may not exist!
-		return !series().equals( DETACHED );
-	}
-	public void detach() { series( DETACHED ); }
-	
-	public void createOverlay() {
+	public void create() {
 		//audit.traceIn( "createOverlay", "" );
-		if (!series().equals( DETACHED )) {
-			new File( root ).mkdir(); // JIC!
-			highest++;
-			File overlay = new File( charsAndInt( root + File.separator + series(), highest )); 
-			if (!overlay.mkdir()) {
-				highest--;
-				//audit.traceOut( "unable to create "+ overlay.toString());
-			} else {
-				number++;
-				//audit.traceOut( "created, overlay "+ highest +", count ="+ number );
-			}
-		} //else
-			//audit.traceOut( "not created -- not attached" );
+		if (Series.attached())
+			Series.append();
+		else
+			audit.debug( "not created -- not attached" );
+		//audit.traceOut();
 	}
-	private static void moveFile( File src, File dest ) {
-		//audit.traceIn( "moveFile", "moving folder: "+ src.toString() +" to "+ dest.toString());
-		/* only called from reducto()
-		 * so we're not propagating !files
-		 */
-    	if (src.isDirectory()) {
-    		/////audit.audit( "moving folder: "+ src.toString() +" to "+ dest.toString());
-    		if (!dest.exists()) dest.mkdir();
-    		//list all the directory contents
-    		String files[] = src.list();
-    		//audit.debug( "moving src of number:"+ src.listFiles().length );
-    		for (String file : files) {
-	    		//construct the src and dest file structure
-	    		File srcFile = new File(src, file);
-	    		File destFile = new File(dest, file);
-	    		//recursive copy
-	    		moveFile( srcFile, destFile );
-    		}
-    		//audit.debug( "deleting "+src.toString()+" of number:"+ src.listFiles().length );
-    		if (!src.delete()) audit.ERROR( "folder move DELETE failed" );
-    	} else {
-    		/* was...
-    		 *   if (dest.exists()) dest.delete();
-             *	 src.renameTo( dest );
-             */
-    		// Of source files, if...
-    		if (!Entity.isDeleteName( src.toString()) //  ...we have filename...
-    				&& new File( Entity.deleteName( src.toString() )).exists()) // ...and !filename exists
-    		{	//// remove !filename
-        		//audit.debug( "a-delete !filename "+ Entity.deleteName( src.toString() ));
-    			new File( Entity.deleteName( src.toString() )).delete();
-    			//// move file across as before
-        		//audit.debug( "a-move file across "+ src.toString() );
-        		if (dest.exists()) dest.delete();
-        		src.renameTo( dest );
-    		} else if ( Entity.isDeleteName( src.toString()) // ...we have !filename
-    				&& new File( Entity.nonDeleteName( src.toString() )).exists())  // ...and filename exists
-    		{	//// just remove !filename (filename will be dealt with when we get there!)
-        		src.delete();
-    			if (src.exists()) audit.ERROR( "b) deleting !filename, with filename ("+ src.toString() +") FAILED" );
-    		} else if (!Entity.isDeleteName( src.toString()) // we have filename..
-    				&& !new File( Entity.deleteName( src.toString() )).exists()) // but not !filename
-    		{	//// move file across - as before
-        		//audit.debug( "c-move file across: "+ src.toString() +" to "+ dest.toString());
-        		if (dest.exists()) if (!dest.delete()) audit.ERROR( "c) DELETE failed: "+ dest.toString() );
-        		if (!src.renameTo( dest ))  audit.ERROR( "c) RENAME of "+ src.toString() +" to "+ dest.toString() +" failed" );
-    		} else if (Entity.isDeleteName( src.toString()) // we have !filename 
-    				&& new File( Entity.nonDeleteName( src.toString() )).exists()) // but not filename
-    		{	//// remove !filename...
-        		//audit.debug( "d-remove !filename... "+ src.toString() );
-    			if (!src.delete()) audit.ERROR( "deleting !fname ("+ src.toString() +") failed");
-    			//// and delete underlying file
-        		//audit.debug( "d-...and delete underlying file "+ dest.toString());
-    			new File( Entity.nonDeleteName( dest.toString() )).delete();
-    	}	}
-    	//audit.traceOut();
-   	}
-	public boolean combineUnderlays() {
-		//audit.traceIn( "combineUnderlays", "combining "+ (number()-1) +" underlays" );
-		/*
-		 * For expediency's sake, this function combines all underlaid  (i.e. protected) overlays
-		 */
+	public boolean destroy() {
+		// removes top overlay of current series
+		//audit.traceIn( "destroy", "" );
 		boolean rc = false;
-		int topOverlay = highest;
-		if (!series().equals( DETACHED ) && topOverlay > 1) {
-			new File( root ).mkdir(); // JIC!
-			File src, dst;
-			for (int overlay=topOverlay-1; overlay>0; overlay--) {
-				src = new File( charsAndInt( root + File.separator + series(), overlay ));
-				if (src.exists()) {
-					dst = new File( charsAndInt( root + File.separator + series(), overlay-1 ));
-					if (dst.exists()) {
-						// move all new files into old overlay
-						//audit.debug( "moving overlay "+ src.toString() +" to "+ dst.toString());
-		    			moveFile( src, dst );
-		    			if (src.exists()) audit.ERROR( src.toString() +" still exists - after MOVE ;(" );
-					} else {
-						//audit.debug( "renaming overlay "+ src.toString() +" to "+ dst.toString());
-						src.renameTo( dst );
-		    			if (!dst.exists()) audit.ERROR( src.toString() +" still doesn't exists - after RENAME ;(" );
-					}
-	    			count( series() );
-	    			//audit.debug( "number of overlays is now: "+ number );
-			}	}
-			// then _rename_ top overlay - will now be ".1"
-			//audit.debug("Now rename top overlay "+ topOverlay +" to be 1" );
-			src = new File( charsAndInt( root + File.separator + series(), topOverlay ));
-			dst = new File( charsAndInt( root + File.separator + series(), 1 ));
-			if (dst.exists()) dst.delete();
-			if (!src.renameTo( dst )) audit.ERROR( "RENAME "+ src.toString()+" to "+ dst.toString() +" FAILED" );
-			if (src.exists()) audit.debug( src.toString() +" still exists - after RENAME ;(" );
-			// adjust count()
-			count( series() );
-			//audit.debug( "count really is: "+ number );
-			rc = true;
-		}
-		//audit.traceOut( "combine "+ (rc?"done":"failed") +", count="+ number +", highest="+ highest );
-		return rc;
-	}
-	public boolean destroyTop() {
-		audit.traceIn( "destroyOverlay", "" );
-		boolean rc = false;
-		int topOverlay = highest;
-		if (topOverlay > 0 && !series().equals( "" )) {
-			new File( root ).mkdir();
-			String nm = charsAndInt( root + File.separator + series(), topOverlay );
-			/////audit.debug( "Destroying "+ nm );
+		int topOverlay = Series.highest();
+		if (topOverlay > 0 && !Series.name().equals( "" )) {
+			String nm = Series.name( topOverlay );
+			//audit.debug( "Destroying "+ nm );
 			rc = Filesystem.destroy( nm );
-			if (rc) count( series() );
+			if (rc) Series.count();
 		}
-		audit.traceOut( rc );
+		//audit.traceOut( rc );
 		return rc;
 	}
-// --
-// --
-//	public static String rename( String NAME ) { 
-//		File f = new File( NAME );
-//		return f.getParent() +"/"+ f.getName() +"^";
-//	}
 	private String nthCandidate( String nm, int vn ) {
-		return (0 > vn) ? nm : 
-				(root + File.separator + version( vn ) +"/"+ nm.substring( Series.base( series() ).length() /*+1*/ )); // +1 remove leading "/"
+		//audit.traceIn( "nthCandidate", "nm='"+ nm +"', vn="+ vn);
+		// nthCandidate( "/home/martin/src/myfile.c", 27 ) => "/var/overlays/series.27/myfile.c"
+		if (vn > Series.highest()) { vn = Series.highest(); audit.ERROR("nthCandidate called with too high a value"); }
+		return	//audit.traceOut(
+				(0 > vn) ? nm : 
+				(Series.name( vn ) + File.separator
+						+ nm.substring( Series.base( Series.name() ).length() /*+1*/ ))
+				//)
+						; // +1 remove leading "/"
 	}
-	private String topCandidate( String name ) { return nthCandidate( name, number()-1); }
+	private String topCandidate( String name ) {
+		return nthCandidate( name, Series.number()-1);
+	}
 	private String delCandidate( String name, int n ) {
 		File f = new File( nthCandidate( name, n ));
 		return f.getParent() +"/!"+ f.getName(); 
@@ -279,7 +253,7 @@ public class Overlay {
 	private String find( String vfname ) {
 		//audit.traceIn( "find", "find: "+ vfname );
 		String fsname = null;
-		int vn = number(); // number=3 ==> series.0,1,2, so initially decr vn
+		int vn = Series.number(); // number=3 ==> series.0,1,2, so initially decr vn
 		boolean done = false;
 		while (!done && --vn >= 0) {
 			fsname = nthCandidate( vfname, vn );
@@ -289,7 +263,7 @@ public class Overlay {
 					fsname = topCandidate( vfname ); // look no further - return top (non-existing) file
 				} else { // look for rename marker -- is this the right order: file - delete - rename?
 //					fsname = o.renameCandidate( vfname, vn );
-//					done = new File(  fsname  ).isFile() || new File(  fsname  ).isDirectory();
+//					done = new File( fsname ).isFile() || new File(  fsname  ).isDirectory();
 		}	}	}
 //		if (!done) // orig file or non-existant file!
 //			fsname = Filesystem.exists( vfname ) ? vfname : topCandidate( vfname );
@@ -299,24 +273,26 @@ public class Overlay {
 	// return true for path=/home/martin/persons/fred/waz/ere
 	// where series = persons
 	//   and /home/martin/sofa/persons.0/reuse -> /home/martin/persons
-	boolean isOverlaid( String vfname ) {
-		return null != Series.base( series() )
+	private boolean isOverlaid( String vfname ) {
+		return null != Series.base( Series.name() )
 		&& vfname != null // sanity
-		&& 0 != Series.base( series() ).length() && 0 != vfname.length() // so base == "x*", NAME == "x*"
-		&& Series.base( series() ).length() < vfname.length()
-		&& vfname.substring( 0, Series.base( series() ).length()).equals( Series.base( series() )); // NAME="xyz/abc" base="xyz" => true
+		&& 0 != Series.base( Series.name() ).length() && 0 != vfname.length() // so base == "x*", NAME == "x*"
+		&& Series.base( Series.name() ).length() < vfname.length()
+		&& vfname.substring( 0, Series.base( Series.name() ).length()).equals( Series.base( Series.name() )); // NAME="xyz/abc" base="xyz" => true
 	}
 	// maps a virtual filename onto a "real" filesystem NAME.
 	// if write - top overlay NAME is returned, simple.
 	// if read  - overlay space is searched for an existing file.
-	//          - if not found, or if the file has been deleted, the (unexisting) write filename is returned
+	//          - if not found, or if the file has been deleted, the (non-existing) write filename is returned
 	//          - if rename found (e.g. old^new), change return the old NAME. 
 	public static String fsname( String vfname, String modeChs ) {
+		//audit.traceIn("fsname","vfname="+vfname+", mode="+modeChs );
 		String fsname = vfname; // pass through!
 		Overlay o = Get();
 		if (o != null && vfname != null) {
 			//-- String vfname = rationalisePath( absolutePath( o.p.toString(), new String( fsname ) ));
 			vfname = Path.absolute( o.path(), vfname );
+			//audit.debug("abs is:"+vfname);
 			if (o.isOverlaid( vfname )) {
 				if (modeChs.equals( MODE_READ )) {
 					fsname = o.find( vfname );
@@ -325,103 +301,35 @@ public class Overlay {
 					fsname = o.topCandidate( vfname );
 					
 				} else if (modeChs.equals( MODE_DELETE )) {
-					fsname = o.delCandidate( vfname, o.number());
-		}	}	}
+					fsname = o.delCandidate( vfname, Series.highest()); // .. was number()
+				}
+			} //else
+				//audit.debug("not overlaid by base="+ Series.base(Series.name()) +", name="+ Series.name());
+		}
+		//return audit.traceOut( fsname );
 		return fsname;
 	}
-
-// list/Read/Close() se also  pents in Path.c
-// similar to opendir, readdir and closedir:
-// should return ???:
-// /home/martin/sofa/series.1/one/two/one.1
-// /home/martin/sofa/series.0/one/two/one.1
-// /home/martin/sofa/series.0/one/two/one.0
-// or just...
-// /home/martin/sofa/series.1/one/two/one.1
-// /home/martin/sofa/series.0/one/two/one.0
-// or even (b):
-// /home/martin/one/two/one.0
-// /home/martin/one/two/one.1
-// or (a)
-// one.0
-// one.1
-// needs to support n.name where n = [0..n] and my be on lower overlay (though generally not) and NAME is unknown.
-// last will suffice, but would be useful if others could be specified...
-// a) list( "." ); b) list( "/home/martin/one/two" ); --> pass to Overlay.fsname() for real filename?
-// currently just needed for "ls" and attribute ordering so one.1 sufficient
-
-/* this code is interesting but isn't used, yet, by entity model -- multi-valued attributes!!! a shopping list?!?
- * **************************************************************************************** *
- * **************************************************************************************** *
- * **************************************************************************************** *
-   List should add files until a delete file found, then remove the file and add the delete.
-   If file is refound, re add the file and start again
-   The list will then contain files and delete files - just don't list the dlete files!
-   So add from bottom up!
-    
-	private String newSubDir( String dname ) {
-		String rc = null;
-		String b = Series.base( series()); // =/home/martin/persons/ -- trailing '/'
-		if (null != b) {
-			int len = b.length();
-			if (len > 0 && len < dname.length() && 0 == dname.substring( 0, len-1 ).equals( b )) {
-				rc = dname.substring( len );
-System.out.println( "newSubDir(): rc="+ rc );
-		}	}
-		return rc;
-	}
-	ArrayList<Pent> list( String dname ) {
-		if (0 == dname.equals( "." ))
-			dname = path();
-//System.out.println("list(): "+ dname );
-		p.pathListDelete();
-		//String absName = rationalisePath( absolutePath( pathAsChars( p ), strdup( dname ? dname : "." ) ));
-		 //-- String absName = rationalisePath( absolutePath( o.p.toString(), new String( uname ) ));
-			String absName = dname;
-			
-//System.out.println("list(): inserting "+ absName );
-		p.pathListInsert( absName, OPT_X );
-		String subDir = newSubDir( absName );
-		if (null != subDir) {
-//System.out.println( "list: also subDir="+ subDir );
-			int n = count();
-			// remove root + series + n from dname...
-//System.out.println( "list: sz="+ n );
-			String prefix = root + "/" + series() + ".";
-//System.out.println( "list: " );
-			while (0 != n--) {
-//System.out.println( "list: instering"+ prefix + n );
-				p.pathListInsert( prefix + n, OPT_X );
-		}	}
-		return p.list();
-	}
-	//pent overlayRead( Overlay o ) { return pathListRead( ((overlay)o)->p ); }
-	//void overlayClose( Overlay o ) { pathListDelete( ((overlay)o)->p ); }
- ***************************************************************************************** *
- ***************************************************************************************** *
- ***************************************************************************************** */
-	// -- Overlay END
-	
 	static public String autoAttach() {
 		String error = "";
-		Overlay o = Get();
 		String candidate = new File( System.getProperty("user.dir")).getName();
-		if (verbose) System.out.println( "autoAttach(): candidate is "+ candidate );
+		audit.debug( "autoAttach(): candidate is "+ candidate );
 		if (candidate.equals( "" )) candidate = /*File.separator +*/ Series.DEFAULT;
-		if (!o.attach( candidate )) {
+		if (!Series.attach( candidate )) {
 			error = "Unable to attach to "+ candidate;
 			candidate = Overlay.DEFAULT;
 			if (!Series.existing( candidate ))
 				Series.create( candidate, new File( System.getProperty("user.dir")).getPath() );
-			if (!o.attach( candidate ))
+			if (!Series.attach( candidate ))
 				error = "Unable to attach to "+ candidate;
 			else
 				error = "";
 		}
-		if (verbose && error.equals( "" )) System.out.println( "Attached to "+ candidate );
+		if (error.equals( "" )) audit.debug( "Attached to "+ candidate );
 		return error;
 	}
-
+	
+	public boolean combineUnderlays() { return Series.compact(); }
+	
 	static private Overlay singletonO = null;
 	static public Overlay Get() {
 		if (null==singletonO) singletonO = new Overlay();
@@ -429,140 +337,137 @@ System.out.println( "newSubDir(): rc="+ rc );
 	}
 	static public void Set( Overlay o ) { singletonO = o; }
 
-	static public String interpret( String[] argv ) {
+	static public String interpret( Strings argv ) {
 		String rc = Shell.FAIL;
-		int argc = argv.length;
+		int argc = argv.size();
 		Overlay o = Overlay.Get();
 		
-		if (argv[ 0 ].equals("attach") && (2 >= argc)) {
+		Strings values = argv.copyAfter( 0 );
+		String  value  = values.toString( Strings.PATH );
+		
+		
+		if (argv.get( 0 ).equals("attach") && (2 >= argc)) {
 			if (2 == argc) {
-				if (o.attach( argv[ 1 ]))
-					System.err.println( "No such series "+ argv[ 1 ]);
+				if (Series.attach( argv.get( 1 )))
+					audit.debug( "No such series "+ argv.get( 1 ));
 				else
 					rc = Shell.SUCCESS;
-			} else if ( o.attached())
-				System.err.println( "Not attached" );
+			} else if ( Series.attached())
+				audit.debug( "Not attached" );
 			else
 				rc = Shell.SUCCESS;
 				
-		} else if (argv[ 0 ].equals("detach") && (1 == argc)) {
-			o.detach();
+		} else if (argv.get( 0 ).equals("detach") && (1 == argc)) {
+			Series.detach();
 			rc = Shell.SUCCESS;
 			
-		} else if ((argv[ 0 ].equals( "save" ) || argv[ 0 ].equals( "create" )) && (1 == argc)) {
-			//System.out.println( "Creating "+ o.series());
+		} else if ((argv.get( 0 ).equals( "save" ) || argv.get( 0 ).equals( "create" )) && (1 == argc)) {
+			//audit.audit( "Creating "+ o.series());
 			rc = Shell.SUCCESS;
-			o.createOverlay();
+			o.create();
 			
-		//} else if (0 == argv[ 0 ].equals( "exists" ) && (2 == argc)) {
-		//	rc =  o.existingSeries( argv[ 1 ]) ? "Yes":"No";
+		//} else if (0 == argv.get( 0 ).equals( "exists" ) && (2 == argc)) {
+		//	rc =  o.existingSeries( argv.get( 1 )) ? "Yes":"No";
 			
-		} else if (argv[ 0 ].equals( "create" ) && ((2 == argc) || (3 == argc)) ) {
-			if (!Series.create( argv[ 1 ], argc == 3 ? argv[ 2 ]:System.getProperty("user.dir") ))
-				System.err.println( argv[ 1 ] + " already exists" );
+		} else if (argv.get( 0 ).equals( "create" ) && ((2 == argc) || (3 == argc)) ) {
+			if (!Series.create( argv.get( 1 ), argc == 3 ? argv.get( 2 ):System.getProperty("user.dir") ))
+				audit.debug( argv.get( 1 ) + " already exists" );
 			else
 				rc = Shell.SUCCESS;
 				
-		} else if (argv[ 0 ].equals( "delete" ) && (2 == argc) ) {
-			if (Series.deleteSeries( argv[ 1 ]))
-				rc = Shell.SUCCESS;
-			else
-				System.err.println( argv[ 1 ] + " doesn't exists" );
+		//} else if (argv.get( 0 ).equals( "delete" ) && (2 == argc) ) {
+		//	if (Series.deleteSeries( argv.get( 1 )))
+		//		rc = Shell.SUCCESS;
+		//	else
+		//		audit.debug( argv.get( 1 ) + " doesn't exists" );
 			
-		} else if (argv[ 0 ].equals(  "destroy"  ) && (1 == argc) ) {
-			rc = o.destroyTop() ? Shell.SUCCESS : Shell.FAIL;
+		} else if (argv.get( 0 ).equals(  "destroy"  ) && (1 == argc) ) {
+			rc = o.destroy() ? Shell.SUCCESS : Shell.FAIL;
 			
-		} else if ((   argv[ 0 ].equals(    "bond"  )
-				    || argv[ 0 ].equals( "combine"  ))
+		} else if ((   argv.get( 0 ).equals(    "bond"  )
+				    || argv.get( 0 ).equals( "combine"  ))
 		           && (1 == argc) ) {
 			rc = o.combineUnderlays() ? Shell.SUCCESS : Shell.FAIL;
 			
-		//} else if (0 == argv[ 0 ].equals( "rm" ) && (2 == argc) ) {
-		//	if (!entityIgnore( argv[ 1 ])) rc =  argv[ 1 ] +" doesn't exists" );
+		//} else if (0 == argv.get( 0 ).equals( "rm" ) && (2 == argc) ) {
+		//	if (!entityIgnore( argv.get( 1 ))) rc =  argv.get( 1 ) +" doesn't exists" );
 		
-		} else if ((1 == argc) && argv[ 0 ].equals( "up" )) {
+		} else if ((1 == argc) && argv.get( 0 ).equals( "up" )) {
 			if ( o.path( ".." ))
 				rc = Shell.SUCCESS;
 			else
-				System.err.println( argv[ 0 ] +": Cannot cd to .." );
+				audit.debug( argv.get( 0 ) +": Cannot cd to .." );
 				
-		} else if ((2 == argc) && argv[ 0 ].equals( "cd" )) {
-			if ( o.path( argv[ 1 ]))
+		} else if ((2 == argc) && argv.get( 0 ).equals( "cd" )) {
+			if ( o.path( argv.get( 1 )))
 				rc = Shell.SUCCESS;
 			else
-				System.err.println( argv[ 0 ] +": Cannot cd to "+ argv[ 1 ]);
+				audit.audit( argv.get( 0 ) +": Cannot cd to "+ argv.get( 1 ));
 		
-		} else if (argv[ 0 ].equals( "pwd" ) && (1 == argc)) {
+		} else if (argv.get( 0 ).equals( "pwd" ) && (1 == argc)) {
 			rc = Shell.SUCCESS;
-			System.err.println( o.path());
+			audit.audit( o.path());
+
+		} else if (argv.get( 0 ).equals( "write" )) {
+			rc = Shell.SUCCESS;
+			audit.audit( "New file would be '"+ Overlay.fsname( value, "w" ) +"'" ); // last param ignored
 			
-		} else if (argv[ 0 ].equals( "write"  ) && (2 == argc)) {
+		} else if (argv.get( 0 ).equals( "mkdir" ) && (2 == argc)) {
 			rc = Shell.SUCCESS;
-			System.out.println( "New file would be '"+ Overlay.fsname( argv[ 1 ], "w" ) +"'" ); // last param ignored
+			audit.audit( ">>>mkdirs("+Overlay.fsname( argv.get( 1 ), "w" )+") => "+ (new File( Overlay.fsname( argv.get( 1 ), "w" )).mkdirs()?"Ok":"Error"));
 			
-		} else if (argv[ 0 ].equals( "mkdir" ) && (2 == argc)) {
+		} else if (argv.get( 0 ).equals( "read" ) && (2 == argc)) {
 			rc = Shell.SUCCESS;
-			System.out.println( ">>>mkdirs("+Overlay.fsname( argv[ 1 ], "w" )+") => "+ (new File( Overlay.fsname( argv[ 1 ], "w" )).mkdirs()?"Ok":"Error"));
-			
-		} else if (argv[ 0 ].equals( "read" ) && (2 == argc)) {
-			rc = Shell.SUCCESS;
-			System.out.println( "File found? is '"+ Overlay.fsname( argv[ 1 ], "r" )+"'" );
-		/*
-		} else if (0 == argv[ 0 ].equals( "ls" )) {
-			ArrayList<Pent> pents = o.list( argv.length > 1 && null != argv[ 1 ]?argv[ 1 ]:"." );
-			rc = "";
-			for (int i=0, sz=pents.size(); i<sz; i++)
-				rc += ((i>0 ? "\n": "") + pents.get( i ).name());
-				
-		} else if (0 == argv[ 0 ].equals( "lx" )) {
-			ArrayList<Pent> pents = o.list( argv.length > 1 && null != argv[ 1 ]?argv[ 1 ]:"." );
-			for (int i=0, sz = pents.size(); i<sz; ++i)
-				if (pents.get( i ).type())
-					rc += ((i>0 ? "\n": "") +"<"+ pents.get( i ).name()+"/>");
-				else
-					rc += ( (i>0 ? "\n": "") + pents.get( i ).name() +"='"+ pents.get( i ).value() +"'");
-		*/
+			audit.audit( "File found? is '"+ Overlay.fsname( argv.get( 1 ), "r" )+"'" );
 		} else
-			System.err.println( "Usage: attach <series>\n"
+			audit.debug( "Usage: attach <series>\n"
 			                 +"     : detach\n"
 			                 +"     : save\n"
 		//	                 +"     : show [<n>] <pathname>\n"
 			                 +"     : write <pathname>\n"
-			                 +"     : read [<n>] <pathname>\n"
+			                 +"     : read  <pathname>\n"
+			                 +"     : delete <pathname>\n"
 			                 +"     : pwd <pathname>\n"
 			                 +"     : cd <pathname>\n"
 		//	                 +"     : ls <pathname>\n"
-			                 +"given: "+ Strings.toString( argv, Strings.CSV ));
+			                 +"given: "+ argv.toString( Strings.CSV ));
 		return rc;
 	}
-
+	
+	/*
+	 * Some helpers from enguage.....
+	 * implements the transaction bit -- this isn't ACID :(
+	 */
+	private boolean inTxn = false;
+	public void startTxn( boolean undoIsEnabled ) {
+		if (undoIsEnabled) {
+			inTxn = true;
+			create();
+	}	}
+	public void finishTxn( boolean undoIsEnabled ) {
+		if (undoIsEnabled) {
+			inTxn = false;
+			combineUnderlays();
+	}	}
+	public void reStartTxn() {
+		if (inTxn) {
+			destroy(); // remove this overlay
+			destroy(); // remove previous -- this is the undo bit
+			create();  // restart a new txn
+	}	}
+	
 
 	
 	public static void main (String args []) {
+		Audit.turnOn();
 		Overlay o = Get();
 		Overlay.Set( o );
 		String rc = autoAttach();
 		if (!rc.equals( "" ))
-			System.out.println( "Ouch!" + rc );
+			audit.audit( "Ouch!" + rc );
 		else {
-			System.out.println( "NAME=, n=" + o.number() );
-			OverlayShell os = new OverlayShell( args );
+			audit.audit( "osroot="+ OverlaySpace.root );
+			audit.audit( "base="+ Series.name()+", n=" + Series.number() );
+			OverlayShell os = new OverlayShell( new Strings( args ));
 			os.run();
 }	}	}
-
-// ================================
-
-
-/*class renamer implements FileFilter {
-	static String newname;
-	renamer( String s ) { newname = s; }
-	public boolean accept( File f ) {
-		int i = f.getName().indexOf( Overlay.RENAME_CH );
-		if (i == -1)
-			return false;
-		else if (0 == f.getName().substring( i+1 ).equals(newname))  // f.getName() => "old^new"  == newname => "new" ???
-			return true;
-		else
-			return false;
-}	}
-*/

@@ -1,9 +1,14 @@
 package com.yagadi.enguage.concept;
 
 import com.yagadi.enguage.Enguage;
-import com.yagadi.enguage.expression.*;
-import com.yagadi.enguage.sofa.*;
-import com.yagadi.enguage.util.*;
+import com.yagadi.enguage.expression.Colloquial;
+import com.yagadi.enguage.expression.Reply;
+import com.yagadi.enguage.sofa.Attribute;
+import com.yagadi.enguage.sofa.Sofa;
+import com.yagadi.enguage.sofa.Variable;
+import com.yagadi.enguage.util.Audit;
+import com.yagadi.enguage.util.Shell;
+import com.yagadi.enguage.util.Strings;
 
 public class Intention extends Attribute {
 	static Audit audit = new Audit( "Intention" );
@@ -22,64 +27,88 @@ public class Intention extends Attribute {
 	private Reply think( String answer ) {
 		//audit.traceIn( "think", "value='"+ value +"', previous='"+ answer +"', ctx =>"+ Reply.context().toString( " " ));
 			
-		// pre-process utterance...
-		String[] u =
-			Language.addTerminator(
-				Enguage.user().apply( // dereference colloquials
-					Reply.both().disapply(
-						Variable.deref(
-							Reply.context().deref( 
-								Strings.replace( // replace "..." with answer
-										Strings.fromString( value ),
+		// pre-process value to get an utterance...
+		// we don't know the state of the intentional value
+		Strings u =
+			Shell.addTerminator(// _user is => _user is.
+				Colloquial.user().internalise( // I am => _user is
+					Colloquial.symmetric().internalise( // I'm => I am
+						Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
+							Reply.context().deref( // X => "coffee", singular-x="80s" -> "80"
+								new Strings( value ).replace( // replace "..." with answer
 										Strings.ellipsis,
-										Strings.append( null, answer ))
-			)	)	)	)	);
+										new Strings( answer )),
+								false // don't expand, UNIT => cup NOT unit='cup'
+				)	)	)	)	);
+		//u = u.normalise(); // [ "this is a test ." ] => [ "this" , is", ...
 
-		//audit.debug( "Thinking: "+ Strings.toString( u, Strings.CSV ));
-		Reply r = Enguage.interpreter.innerterpret( u );
+		audit.debug( "Thinking: "+ u.toString( Strings.CSV ));
+		Reply r = Enguage.e.innerterpret( u );
 		
 		r.doneIs( false );
 		// TODO: should be toasted?
-		if ( Reply.DNU == r.getType())
-			audit.ERROR( "Strange thought: I don't understand: '"+ Strings.toString( u, Strings.SPACED ) +"'" );
-		else if ( Reply.NO == r.getType() && r.answer().equalsIgnoreCase( Reply.ik()))
+		if ( Reply.DNU == r.getType()) {
+			/* TODO: At this point do I want to cancel all skipped signs? 
+			 * Or just check if we've skipped any signs and thus report 
+			 * this as simply a warning not an ERROR?
+			 */
+			if (Engine.disambFound())
+				audit.ERROR( "Following ERROR: maybe just run out of meanings?" );
+			audit.ERROR( "Strange thought: I don't understand: '"+ u.toString( Strings.SPACED ) +"'" );
+		
+		} else if ( Reply.NO == r.getType() && r.answer().equalsIgnoreCase( Reply.ik()))
 			r.answer( Reply.yes());
 		
 		//audit.traceOut( r.asString());
 		return r;
 	}
-	private String conceptualise() {
+	private String conceptualise( String answer ) {
 		//audit.traceIn(  "conceputalise", "value='"+ value +"', ["+ Reply.context().toString( " " ) +"]" );
 		// SofA CLI in C returned 0, 1, or "xxx" - translate these values into Reply values
+		Strings cmd = // Don't Strings.normalise() coz sofa requires "1" parameter
+				Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
+					Reply.context().deref(
+							new Strings( value ).replace( // replace "..." with answer
+								Strings.ellipsis,
+								new Strings( answer )),
+							true // DO expand, UNIT => unit='non-null value'
+				)	);
 		
-		String[] cmd = Reply.context().deref(
-				Reply.context().getCommand(
-						Strings.fromString( value )));
-		
-		audit.debug(  "command is: "+ Strings.toString( cmd, Strings.CSV ));
+		//audit.debug(  "conceptualising: "+ cmd.toString( Strings.CSV ));
 		String rc = new Sofa( null ).interpret( cmd );
 		//audit.debug(  "raw answer is: '"+ rc +"'" );
-		if (cmd[ 1 ].equals( "get" ) && (null == rc || rc.equals( "" ))) {
-			//audit.audit("conceptualise: get returned null -- should return something");
+		if (cmd.get( 1 ).equals( "get" ) && (null == rc || rc.equals( "" ))) {
+			audit.debug("conceptualise: get returned null -- should return something");
 			rc = Reply.dnk();
 		} else if (rc.equals( Shell.FAIL )) {
-			//audit.audit("conceptualise: get returned FALSE --> no");
+			audit.debug("conceptualise: get returned FALSE --> no");
 			rc = Reply.no();
 		} else if (rc.equals( Shell.SUCCESS )) {
-			//audit.audit("conceptualise: get returned TRUE --> yes");
-			rc = Reply.yes();
+			// was rc = Reply.yes(); -- need to perpetuate answer
+			// if no ans or -ve ans - set to No, otherwise set to existing ans
+			rc =  answer.equals("")||answer.equals( Reply.no() ) ? Reply.success() : answer;
 		}
 		//audit.traceOut( rc );
 		return rc;
 	}
 	private Reply reply( Reply r ) {
+		//audit.traceIn(  "reply", "value='"+ value +"', ["+ Reply.context().toString( " " ) +"]" );
 		// value="X needs Y"; X="_user", Y="beer+crisps" -- ?"fuller/beer+crisps"?
 		// we're on the way out - treat each value as an answer!
 		Reply.context().delistify();
 		// now Y="beer and crisps" -- ?"fuller/beer+crisps"?
-		value = Reply.context().deref( value );
-		r.format( value );
-		r.doneIs( true );
+		r.format(
+			Variable.deref(
+				Reply.context().deref(
+					value // ?replaced with...
+					/*new Strings( value ).replace( // replace "..." with answer
+					 *	Strings.ellipsis,
+					 *	new Strings( r.answer()))
+					 */
+			)	)
+		)
+		.doneIs( true );
+		//audit.traceOut( r.toString() +"::"+ r.format().toString() );
 		return r;
 	}
 	
@@ -88,7 +117,7 @@ public class Intention extends Attribute {
 		//	audit.traceIn( "mediate", name +"='"+ value +"', r='"+ r.asString() +"', ctx =>"+ Reply.context().toString( " " ));
 		
 		if (name.equals( "finally" ))
-			conceptualise(); // ignore result of finally
+			conceptualise( r.answer()); // ignore result of finally
 
 		else if (name.equals( "id" ))
 			; // ignore id
@@ -102,24 +131,20 @@ public class Intention extends Attribute {
 				if (name.equals( ELSE_THINK ))
 					r = think( r.answer() );
 				else if (name.equals( ELSE_PERFORM ))
-					r.answer( conceptualise());
+					r.answer( conceptualise( r.answer()));
 				else if (name.equals( ELSE_REPLY ))
 					r = reply( r );
-				//else
-					//audit.debug( "Skipping "+ name +": infelicitous outcome" );
  					
 			} else { // train of thought is positive
 				if (name.equals( THINK ))
 					r = think( r.answer() );
 				else if (name.equals( PERFORM ))
-					r.answer( conceptualise());
+					r.answer( conceptualise( r.answer()));
 				else if (name.equals( REPLY )) // if Reply.NO -- deal with -ve replies!
 					r = reply( r );
-				//else
-					//audit.debug( "Skipping "+ name +": felicitous outcome" );
 			}
-		} else
-			audit.debug( "skipping "+ name +": reply already found" );
+		}// else
+		//	audit.debug( "skipping "+ NAME +": reply already found" );
 		//if (!name.equals("id") && !name.equals("help"))
 		//	audit.traceOut( "r='"+ r.toString() +"' ("+ r.asString() +")");
 		return r;

@@ -1,15 +1,18 @@
 package com.yagadi.enguage.sofa;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Locale;
 
 import com.yagadi.enguage.concept.Tag;
-import com.yagadi.enguage.expression.Answer;
 import com.yagadi.enguage.expression.Plural;
+import com.yagadi.enguage.expression.Reply;
+import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Strings;
 
 public class Attributes extends ArrayList<Attribute> {
-	//static private Audit audit = new Audit( "Attributes" );
+	static private Audit audit = new Audit( "Attributes" );
 	static final long serialVersionUID = 0;
 	
 	public Attributes() { super(); }
@@ -42,40 +45,103 @@ public class Attributes extends ArrayList<Attribute> {
 			}
 			while (i<sz && Character.isWhitespace( s.charAt( i ) )) i++; // read over spaces
 	}	}
-
-	public boolean has( String name, String value ) { return indexOf( new Attribute( name, name )) != -1; }
-	public boolean has( String name ) { return has( name, name ); }
-	
+/*
+	public boolean xxxequals( Attributes attrs ) {
+		/* 
+		 * this is probably a dreadful algorithm: test this
+		 * /
+		Attribute a;
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext()) {
+			a = i.next();
+			if (!a.value().equals( attrs.get( a.name() )))
+				return false;
+		}
+		return true; // for now
+	}// */
+	public boolean matches( Attributes pattern ) {
+		/* Theory is that pattern will typically have less content than target.
+		 */
+		if (pattern.size() > size())
+			return false;
+		
+		Attribute a;
+		Iterator<Attribute> pi = pattern.iterator();
+		while (pi.hasNext()) {
+			a = pi.next();
+			if (!a.value().equals( get( a.name() )))
+				return false;
+		}
+		return true; // for now
+	}
+	public boolean has( String name, String value ) { return indexOf( new Attribute( name, value )) != -1; }
+	public boolean has( String name ) {
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext())
+			if (i.next().name().equals( name ))
+				return true;
+		return false;
+	}
+	public boolean hasIgnoreCase( String name ) {
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext())
+			if (i.next().name().equalsIgnoreCase( name ))
+				return true;
+		return false;
+	}
 	public String get( String name ) {
-		for (int i=0, sz=size(); i<sz; i++ ) {
-			Attribute a = get( i );
-			if (a.name().equals( name )) {
+		Attribute a;
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext()) {
+			a = i.next();
+			if (a.name().equals( name ))
 				return a.value();
+		}
+		return "";
+	}
+	public String remove( String name ) {
+		Attribute a;
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext()) {
+			a = i.next();
+			if (a.name().equals( name )) {
+				String tmp = a.value();
+				i.remove();
+				return tmp;
 		}	}
 		return "";
 	}
 	public String getIgnoreCase( String name ) {
-		int rc = -1;
-		for (int i=0, sz=size(); i<sz; i++ )
-			if (get( i ).name().equalsIgnoreCase( name )) {
-				rc = i;
-				break;
-			}
-		return -1 == rc ? "" : get( rc ).value();
+		Attribute a;
+		Iterator<Attribute> i = iterator();
+		while (i.hasNext()) {
+			a = i.next();
+			if (a.name().equalsIgnoreCase( name )) return a.value();
+		}
+		return "";
 	}
 	
 	public String toString( String sep ) {
 		if (null == sep) sep = "";
 		String s = "";
-		for (int i=0, sz=size(); i<sz; ++i ) s += ((i==0?"":sep) + get( i ).toString());
+		for (int i=0, sz=size(); i<sz; ++i ) s += (sep + get( i ).toString());
 		return s;
 	}
-	public String toString() { return " "+ toString( " " ); }
+	public String toString() { return toString( " " ); }
 
 	public static boolean isUpperCase( String s ) {return s.equals( s.toUpperCase( Locale.getDefault()));}
+	public static boolean isAlphabetic( String s ) {
+		for ( int i=0; i< s.length(); i++ ) {
+			int type = Character.getType( s.charAt( i ));
+			if (type == Character.UPPERCASE_LETTER ||
+				type == Character.LOWERCASE_LETTER   )
+				return true;
+		}
+		return false;
+	}
 	// BEVERAGE -> coffee + [ NAME="martins", beverage="tea" ].deref( "SINGULAR-NAME needs a $BEVERAGE" );
 	// => martin needs a coffee.
-	private String derefName( String name ) { // hopefully non-blank string
+	private String derefName( String name, boolean expand ) { // hopefully non-blank string
 		//audit.traceIn( "derefName", name );
 		String value = null;
 		if (null != name && name.length() > 0 ) {
@@ -92,9 +158,11 @@ public class Attributes extends ArrayList<Attribute> {
 			// just in case user has used $X notation in think intention
 			if (prefixed) name = name.substring( 1 );
 			// do the dereferencing...
-			if ( isUpperCase( name )) {
+			if ( isAlphabetic( name ) && isUpperCase( name )) {
 				value = get( name.toLowerCase( Locale.getDefault() ));
-				//audit.debug( "Found: "+name +"='"+ value +"'");
+				if (expand && !value.equals( "" ))
+					value = name.toLowerCase( Locale.getDefault() ) +"='"+ value +"'";
+				//audit.debug( "Found: "+name +" => '"+ value +"'");
 			}
 			if (value == null || value.equals( "" ))
 				value = orig;
@@ -103,59 +171,56 @@ public class Attributes extends ArrayList<Attribute> {
 				if (singular) value = Plural.singular( value );
 				if (quoted)   value = "'"+ value +"'";
 		}	}
-		//return audit.traceOut( value );
+		//audit.traceOut( value );
 		return value;
 	}
-	
-	public String[] deref( String[] ans ) {
-		//audit.traceIn("deref", Strings.toString( ans, Strings.DQCSV ));
+	public Strings deref( Strings ans ) {
+		return deref( ans, false ); // backward compatible
+	}
+	public Strings deref( Strings ans, boolean expand ) {
+		//audit.traceIn("deref", ans.toString( Strings.DQCSV ));
 		//audit.debug( "attributes are: "+ toString() );
-		if (null != ans)
-			for (int i=0; i<ans.length; i++)
-				ans[ i ] = derefName( ans[ i ]);
-		//audit.traceOut(Strings.toString( ans, Strings.DQCSV ));
+		if (null != ans) {
+			ListIterator<String> i = ans.listIterator();
+			while ( i.hasNext())
+				i.set( derefName( i.next(), expand ));
+		}
+		//audit.traceOut( ans.toString( Strings.DQCSV ));
 		return ans;
 	}
-	public String deref( String value ) {
+	public String deref( String value ) { return deref( value, false ); }
+	public String deref( String value, boolean expand ) {
 		// called on REPLYing
-		return Strings.toString(
-			deref(
-				Strings.fromString( value )
-			),
-			Strings.SPACED
-		);
+		return deref( new Strings( value ), expand ).toString( Strings.SPACED );
 	}
 	public void delistify() { // "beer+crisps" => "beer and crisps"
-		for (int i=0, sz=size(); i<sz; i++)
-			get( i ).value( // set value to...
-					new Answer().value( // ...an answer, with the value of...
-							get( i ).value() // ... this value
-				).toString() // ... as a string
-			);
+		for (int i=0, sz=size(); i<sz; i++) {
+			Attribute a = get( i );
+			Strings sa = new Strings( a.value(), Attribute.VALUE_SEP.charAt( 0 ));
+			set( i, new Attribute( a.name(), sa.toString( Reply.andListFormat() )));
+	}	}
+	public static Strings stripValues( Strings sa ) {
+		for (int i=0; i< sa.size(); i++)
+			sa.set( i, Attribute.expandValues( sa.get( i )).toString( Strings.SPACED ));
+		return sa;
 	}
 
 	public static void main( String argv[]) {
-		int argc = argv.length;
-		if (0 == argc) {
-			Attributes b = null, a = new Attributes();
-			a.add( new Attribute( "martin", "hero" ));
-			a.add( new Attribute( "ruth", "fab" ));
-			System.out.println( "Initial test: "+ a.toString());
-			System.out.println( "\tmartin is "+  a.get( "martin" ) +"ic");
-			System.out.println( "\truth is "+   a.get( "ruth" ));
-			System.out.println( "\tjames is "+  a.get( "james" ));
-			System.out.println( "\tderef martin is "+  a.derefName( "$martin" ));
-			
-			//System.out.println( "\temily is "+  b.get( "emily" ));
-			a.remove( new Attribute( "martin" ));
-			System.out.println( "\ta now (removing martin) is:"+ a.toString());
-			System.out.println( "\tafter deletion a is: "+ a.toString());
-			//System.out.println( "\tb is: %s"+ b.toString( null ));
-			b = new Attributes();
-			System.out.println( "\tb is: >"+ b.toString() +"<" );
-		} else if (1 == argc) {
-			Attributes a = new Attributes( "   NAME=\"one\" name2='two'  " );
-			System.out.println( "File contains: "+ a.toString());
-		} else
-			System.err.println( "Usage: Attributes [<filename>]" );
+		Audit.turnOn();
+		Attributes b = null, a = new Attributes();
+		a.add( new Attribute( "martin", "hero" ));
+		a.add( new Attribute( "ruth", "fab" ));
+		audit.audit( "Initial test: "+ a.toString());
+		audit.audit( "\tmartin is "+  a.get( "martin" ) +"ic");
+		audit.audit( "\truth is "+   a.get( "ruth" ));
+		audit.audit( "\tjames is "+  a.get( "james" ));
+		audit.audit( "\tderef martin is "+  a.deref( "what is MARTIN" ));
+		
+		//audit.audit( "\temily is "+  b.get( "emily" ));
+		a.remove( new Attribute( "martin" ));
+		audit.audit( "\ta now (removing martin) is:"+ a.toString());
+		audit.audit( "\tafter deletion a is: "+ a.toString());
+		//audit.audit( "\tb is: %s"+ b.toString( null ));
+		b = new Attributes();
+		audit.audit( "\tb is: >"+ b.toString() +"<" );
 }	}

@@ -9,11 +9,39 @@ abstract public class Shell {
 	public static final String SUCCESS = "TRUE";	
 	public static final String FAIL    = "FALSE";
 		
-	abstract public String interpret( String[] argv ) ;
+	abstract public String interpret( Strings argv ) ;
 	
-	//static protected String[] args = null;
-	//static private   void     args( String[] a ) { args = a; }
-	//static public   String[]  args() { return args; 	}
+	
+	static public Strings terminators = new Strings( ". ? !" );
+	static public void    terminators( Strings a ){ terminators = a; }
+	static public Strings terminators() { return terminators; }
+	static public boolean isTerminator( String s ) { return Strings.contain( terminators(), s ); }
+	static public String  terminatorIs( Strings a ){ return (null != a) && a.size()>0 ? a.get( a.size() -1) : ""; }
+	static public boolean isTerminated( Strings a ) {
+		boolean rc = false;
+		if (null != a) {
+			int last = a.size() - 1;
+			if (last > -1) rc = isTerminator( a.get( last ));
+		}
+		return rc; 
+	}
+	static public Strings stripTerminator( Strings a ) {
+		if (isTerminated( a ))
+			a.remove( a.size() - 1 );
+		return a;
+	}
+	static public String stripTerminator( String a ) {
+		return stripTerminator( new Strings( a )).toString( Strings.SPACED );
+	}
+	static public Strings addTerminator( Strings a, String term ) {
+		if (!isTerminated( a ) && null != term)
+			a.add( term );
+		return a;
+	}
+	static public Strings addTerminator( Strings a ) { return addTerminator( a, terminators().get( 0 )); }
+
+	
+	
 	
 	private String  prompt;
 	public  String  prompt() { return prompt; }
@@ -32,14 +60,9 @@ abstract public class Shell {
 	public  Shell  copyright( String wh, String dts ) { who = wh; dates = dts; return this; }
 
 	public Shell( String name ) {
-		// will inherit args -- need to check if this is used first, no args?
 		name( name ).prompt( "> " ).copyright( "Martin Wheatman", "2001-4, 2011-14" );
-		//System.err.println( copyright() );
 	}
-	public Shell( String name, String args[] ) {
-		this( name );
-		//args( args ); // these are common to all spawned shells
-	}
+	public Shell( String name, Strings args ) { this( name ); }
 	public void interpret( InputStream fp ) { // reads file stream and "interpret()"s it
 		if (fp==System.in) System.err.print( name() + prompt());
 		BufferedReader br = null;
@@ -54,8 +77,8 @@ abstract public class Shell {
 					if (-1 != i) line = line.substring( 0, i );
 					// will return "cd .." as ["cd", ".", "."], not ["cd" ".."] -- "cd.." is meaningless!
 					// need new stage of non-sentence sign processing
-					String input[] = Strings.fromString( line ); 
-					if (input.length > 0) {
+					Strings input = new Strings( line ); 
+					if (input.size() > 0) {
 						String rc = interpret( input );
 						if (aloud)
 							System.out.println( rc );
@@ -72,5 +95,5 @@ abstract public class Shell {
 			} catch (java.io.IOException e ) { //ignore?
 	}	}	}
 	public void run() { interpret( System.in ); }
-	public void run( String[] args ) { interpret( args ); }
+	//public void run( String[] args ) { interpret( args ); }
 }

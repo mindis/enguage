@@ -1,9 +1,15 @@
 package com.yagadi.enguage.util;
 
-// TODO: remove use of ArrayList??? or use in throughout??? or LinkedList?
+// todo: remove use of ArrayList??? or use in throughout??? or LinkedList?
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
-public class Strings /*extends ArrayList<String>???*/ {
+public class Strings extends ArrayList<String> {
+	
+	public static final long serialVersionUID = 0;
+	static private Audit audit = new Audit( "Strings" );
+	
 	public final static int     CSV = 0;
 	public final static int   SQCSV = 1;
 	public final static int   DQCSV = 2;
@@ -12,82 +18,47 @@ public class Strings /*extends ArrayList<String>???*/ {
 	public final static int   LINES = 5;
 	public final static int  CONCAT = 6;
 	public final static int ABSPATH = 7;
-	public final static String dotDotDot[] = { ".", ".", "." };
-	public final static String ELLIPSIS    =     "...";
-	public final static String ellipsis[]  = {  ELLIPSIS     };
-
-	static public String toString( String a[], String fore, String mid, String aft) {
-		String as = "NULL";
-		if (null != a) {
-			as = "";
-			if (a.length > 0) {
-				as = fore;
-				for (int i=0; i < a.length; i++)
-					as += ((i == 0 ? "" : mid) + a[ i ]);
-				as += aft;
-		}	}
-		return as;
+	
+	public final static String      lineTerm = "\n";
+	public final static String           AND = "&&";
+	public final static String            OR = "||";
+	public final static String    PLUS_ABOUT = "+~";
+	public final static String   MINUS_ABOUT = "-~";
+	public final static String   PLUS_EQUALS = "+=";
+	public final static String  MINUS_EQUALS = "-=";
+	public final static String      ELLIPSIS = "...";
+	public final static Strings ellipsis = new Strings( ELLIPSIS, '/' );
+	
+	private String[] tokens = {
+			ELLIPSIS,    AND,  OR,
+			PLUS_EQUALS, MINUS_EQUALS,
+			PLUS_ABOUT,  MINUS_ABOUT };
+	
+	public Strings() { super(); }
+	
+	public Strings( Strings orig ) {
+		super();
+		if (null != orig)
+			for (int i=0; i<orig.size(); i++)
+				add( orig.get( i ));
 	}
-	static public String toString( ArrayList<String> a, String fore, String mid, String aft) {
-		return toString( Strings.fromArrayList( a ), fore, mid, aft );
+	public Strings( String[] sa ) {
+		super();
+		if (null != sa)
+			for (int i=0; i<sa.length; i++)
+				add( sa[ i ]);
 	}
-	static public String toString( String a[], int n ) {
-		return
-			( n ==  SPACED ) ? toString( a,   "",      " ",   "" ) :
-			( n ==  CONCAT ) ? toString( a,   "",       "",   "" ) :
-			( n ==   DQCSV ) ? toString( a, "\"", "\", \"", "\"" ) :
-			( n ==   SQCSV ) ? toString( a,  "'",   "', '",  "'" ) :
-			( n ==     CSV ) ? toString( a,   "",     ", ",   "" ) :
-			( n ==    PATH ) ? toString( a,   "",      "/",   "" ) :
-			( n ==   LINES ) ? toString( a,   "",     "\n",   "" ) :
-			( n == ABSPATH ) ? toString( a,   "/",     "/",   "" ) :
-			"Strings.toString( "+ Strings.toString( a, CSV ) +", n="+ n +"? )";
-	}
-	static public String toString( ArrayList<String> a, int n){
-		return toString( Strings.fromArrayList( a ), n );
-	}
-	static public String toString( String[] a, String[] seps ) {
-		if (null == a || a.length == 0)
-			return "";
-		else if (null == seps)
-			return toString( a, SPACED );
-		else if (seps.length == 1)
-			return toString( a, "", seps[0], "" );
-		else if (seps.length == 2) { // oxford comma: ", ", ", and "
-			String tmp = a[ 0 ];
-			for (int i=1, sz=a.length; i<sz; i++)
-				tmp += ((i+1==sz)?seps[ 1 ]:seps[ 0 ]) + a[ i ];
-			return tmp;
-		} else if (seps.length == 4) {
-			String[] tmp = { seps[ 1 ], seps[ 2 ]};
-			return seps[ 0 ] + Strings.toString( a, tmp ) + seps[ 3 ];
-		} else 
-			return toString( a, seps[ 0 ], seps[ 1 ], seps[ 2 ]);
-	} // don't use traceOutStrings here -- it calls Strings.toString()!
-	// --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
-	static public String[] fromArrayList( ArrayList<String> als ) {
-		// There is probably a util to do this...!
-		String rc [] = new String [als==null?0:als.size()];
-		if (null != als) for (int i=0; i<als.size(); i++)
-			rc[ i ] = als.get( i );
-		return rc;
-	}
-	static public String[] fromString( String buf ) {
-		ArrayList<String> a = Strings.arrayListFromString( buf );
-		return Strings.fromArrayList( a );
-	}
-	static public ArrayList<String> arrayListFromString( String buf ) {
-		ArrayList<String> a = new ArrayList<String>();
+	public Strings( String buf ) {
 		if (buf != null && !buf.equals( "" )) { // NB this doesn't tie up with parsing in Attributes.c!!!!
-			for (int i=0, sz=buf.length(); i<sz; ) {
-				while (i<sz && Character.isWhitespace( buf.charAt( i ) ))
-					i++;
+			int sz = buf.length();
+			for (int i=0; i<sz; ) {
+				while (i<sz && Character.isWhitespace( buf.charAt( i ))) i++;
 				if (i<sz) {
 					String word = "";
 					if (Character.isLetter( buf.charAt( i ))
-						|| '_' == buf.charAt( i )
-						|| '$' == buf.charAt( i ))
-					{ // "normal string -- >don't< is now all one string!
+						|| (('_' == buf.charAt( i )	|| '$' == buf.charAt( i ))
+								&& 1+i<sz && Character.isLetter( buf.charAt( 1+i ))))
+					{	//audit.audit("reading AlphaNumeric including embedded apostropies");
 						word += Character.toString( buf.charAt( i++ ));
 						while (i<sz && (
 							   Character.isLetter( buf.charAt( i ))
@@ -97,12 +68,30 @@ public class Strings /*extends ArrayList<String>???*/ {
 							||	( '_'  == buf.charAt( i ))
 						))
 							word += Character.toString( buf.charAt( i++ ));
-					} else if (Character.isDigit( buf.charAt( i ) )) {
-						while (i<sz && Character.isDigit( buf.charAt( i ) ))
-							word += Character.toString( buf.charAt( i++ ));   // will need to read 100.00
-// check for "def'def", " 'def" or "...def'[ ,.?!]" to capture embedded apostrophes
+						
+					} else if (Character.isDigit( buf.charAt( i ))
+							 ||	(	i+1<sz
+								 && Character.isDigit( buf.charAt( 1+i ))
+								 && (	buf.charAt( i )=='-'   // -ve numbers
+								 	 || buf.charAt( i )=='+')) // +ve numbers
+							)
+					{	//audit.audit("reading NUMBER");
+						word += buf.charAt( i++ );
+						boolean pointDone = false;
+						while (i<sz
+								&& (Character.isDigit( buf.charAt( i ))
+								    || (  !pointDone
+								    	&& buf.charAt( i )=='.')
+								        && i+i<sz
+								        && Character.isDigit( buf.charAt( 1+i ))))
+						{	if (buf.charAt( i ) == '.') pointDone = true;
+							word += Character.toString( buf.charAt( i++ ));
+						}
+						
 					} else if ('\'' == buf.charAt( i ) ) {
+						// embedded apostrophes: check "def'def", " 'def" or "...def'[ ,.?!]" 
 						// quoted string with embedded apostrophes 'no don't'
+						//audit.audit("SQ string");
 						word += Character.toString( buf.charAt( i++ ));
 						while( i<sz &&
 						      !('\'' == buf.charAt( i ) && // ' must be followed by WS
@@ -110,27 +99,86 @@ public class Strings /*extends ArrayList<String>???*/ {
 						     ) )
 							word += Character.toString( buf.charAt( i++ ));
 						if (i<sz) word += Character.toString( buf.charAt( i++ ));
+						
 					} else if ('"' == buf.charAt( i ) ) {
+						//audit.audit("DQ string");
 						word += Character.toString( buf.charAt( i++ ));
 						while( i<sz && '"' != buf.charAt( i ) )
 							word += Character.toString( buf.charAt( i++ ));
 						if (i<sz) word += Character.toString( buf.charAt( i++ ));
-					} else if ((i+2 < sz)
-									&& buf.charAt( i ) == '.'
-									&& buf.charAt( i+1 ) == '.'
-									&& buf.charAt( i+2 ) == '.')	{
-						word = "...";
-						i += 3;
-					} else
-						word = Character.toString( buf.charAt( i++ ));
-					if (!word.equals( "" )) { a.add( word ); word = ""; }
-		}	}	}	
-		return a;
+						
+					} else {
+						boolean found = false;
+						//audit.audit("TOKEN");
+						for (int ti=0; ti<tokens.length && !found; ti++)
+							if (tokenMatch( tokens[ ti ],  buf,  i,  sz )) {
+								found=true;
+								word = tokens[ ti ];
+								i += tokens[ ti ].length();
+							}
+						if (!found) word = Character.toString( buf.charAt( i++ ));
+					}
+					if (!word.equals( "" )) {
+						//audit.audit(">>>>adding:"+word);
+						add( word );
+						word = "";
+					}
+		}	}	}
 	}
-	static public ArrayList<String> ListFromSeparatedString( String buf, char sep ) {
-		ArrayList<String> a = null;
+	private static boolean tokenMatch( String token, String buf, int i, int sz ) {
+		int tsz = token.length();
+		return (i+tsz <= sz) && token.equals( buf.substring( i, i+tsz ));
+	}
+	public String toString( String fore, String mid, String aft ) {
+		String as = "";
+		int sz = size();
+		if (sz > 0) {
+			as = fore;
+			for (int i=0; i<sz; i++)
+				as += ((i == 0 ? "" : mid) + get( i ));
+			as += aft;
+		}
+		return as;
+	}
+	public String toString( int n ) {
+		return
+			( n ==  SPACED ) ? toString(   "",      " ",   "" ) :
+			( n ==  CONCAT ) ? toString(   "",       "",   "" ) :
+			( n ==   DQCSV ) ? toString( "\"", "\", \"", "\"" ) :
+			( n ==   SQCSV ) ? toString(  "'",   "', '",  "'" ) :
+			( n ==     CSV ) ? toString(   "",      ",",   "" ) :
+			( n ==    PATH ) ? toString(   "",      "/",   "" ) :
+			( n ==   LINES ) ? toString(   "",     "\n",   "" ) :
+			( n == ABSPATH ) ? toString(   "/",     "/",   "" ) :
+			"Strings.toString( "+ toString( CSV ) +", n="+ n +"? )";
+	}
+	public String toString( Strings seps ) {
+		if (size() == 0)
+			return "";
+		else if (null == seps)
+			return toString( SPACED );
+		else if (seps.size() == 1)
+			return toString( "", seps.get( 0 ), "" );
+		else if (seps.size() == 2) { // oxford comma: ", ", ", and "
+			String tmp = get( 0 );
+			for (int i=1, sz=size(); i<sz; i++)
+				tmp += ((i+1==sz)?seps.get( 1 ):seps.get( 0 )) + get( i );
+			return tmp;
+		} else if (seps.size() == 4) {
+			Strings tmp = new Strings();
+			tmp.add( seps.get( 1 ));
+			tmp.add( seps.get( 2 ));
+			return seps.get( 0 ) + toString( tmp ) + seps.get( 3 );
+		} else 
+			return toString( seps.get( 0 ), seps.get( 1 ), seps.get( 2 ));
+	} // don't use traceOutStrings here -- it calls Strings.toString()!
+	/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
+	static private String[] fromString( String buf ) {
+		Strings a = new Strings( buf );
+		return Strings.fromArrayList( a );
+	}*/
+	public Strings( String buf, char sep ) {
 		if (null != buf) {
-			a = new ArrayList<String>();
 			int sz = buf.length();
 			if (0 < sz) {
 				int cp = 0;
@@ -139,53 +187,33 @@ public class Strings /*extends ArrayList<String>???*/ {
 					word="";
 					while( cp<sz && (sep != buf.charAt(cp)))
 						word += Character.toString( buf.charAt( cp++ )); // *cp++ = *buf++;
-					a.add( new String( word ));
+					add( new String( word ));
 					if ( cp<sz && sep == buf.charAt(cp) ) { // not finished
 						cp++;         // avoid separator
 						if (cp>=sz) // now finished!
-							a.add( new String( "" )); // add trailing blank string!
-		}	}	}	}
-		return a;
-	}
-	static public boolean equals( String[] a, String[] b ) {
-		if (a == b) return true;
-		if (   (a != null && b != null)
-		    && (a.length  == b.length ))
-		{
-			for (int i=0; i<a.length; i++)
-				if (!a[ i ].equals( b[ i ]))
-					return false;
-			return true;
+							add( new String( "" )); // add trailing blank string!
+	}	}	}	}	}
+	public Strings filter() {
+		// remove any [ superfluous ] stuff
+		Strings filtered = new Strings();
+		ListIterator<String> li = listIterator();
+		while (li.hasNext()) {
+			String item=li.next();
+			if (item.equals( "[" )) // skip to closing ]
+				while (li.hasNext() && !item.equals( "]" ))
+					item=li.next();
+			else
+				filtered.add( item );
 		}
-		return false;
+		return filtered;
 	}
-	static public String[] fromString( String buf, char sep ) {
-		ArrayList<String> a = Strings.ListFromSeparatedString( buf, sep );
-		return Strings.fromArrayList( a );
-	}
-	static public String[] fromString( String buf, String sep ) {
-		ArrayList<String> a = Strings.ListFromSeparatedString( buf, sep.charAt( 0 ));
-		return Strings.fromArrayList( a );
-	}
-	public static final String lineTerm = "\n";
-	static public String[] fromLines( String buf ) {
-		ArrayList<String> a = Strings.ListFromSeparatedString( buf, lineTerm.charAt( 0 ));
-		return Strings.fromArrayList( a );
-	}
-	static public String[] removeAt( String[] a, int n ) {
-		if (a==null || n >= a.length) return a;
-		String [] b = new String[ a.length - 1 ];
-		for(int ai=0, bi=0; ai<a.length; ai++)
-			if (ai != n )
-				b[ bi++ ] = a[ ai ];
-		return b;
-	}
-	static public String[] removeAll( String[] a, String val ) {
-		String [] b = new String[ 0 ];
-		for (int ai=0; ai<a.length; ai++)
-			if (!a[ ai ].equals( val ))
-				b = Strings.append( b, a[ ai ]);
-		return b;
+	public Strings removeAll( String val ) {
+		Iterator<String> ai = iterator();
+		while (ai.hasNext()) {
+			if (ai.next().equals( val ))
+				ai.remove();
+		}
+		return this;
 	}
 	// EITHER:
 	// (a=[ "One Two Three", "Ay Bee Cee", "Alpha Beta" ], val= "Bee") => "Ay Bee Cee";
@@ -193,7 +221,7 @@ public class Strings /*extends ArrayList<String>???*/ {
 	//	return "incomplete";
 	//}
 	// OR: (outer=[ "a", "strong", "beer" ], inner=[ "strong", "beer" ]) => true
-	static public boolean containsStrings( String[] outer, String[] inner ) {
+/*	static public boolean xcontainsStrings( String[] outer, String[] inner ) {
 		if (outer.length == 0 && 0 == inner.length)
 			return true;
 		else if (outer.length >= inner.length)
@@ -201,79 +229,100 @@ public class Strings /*extends ArrayList<String>???*/ {
 				for (int i=0; i<inner.length; i++)
 					if (outer[ o + i ].equals( inner[ i ])) return true;
 		return false;
+	} // */
+	public boolean containsMatched( Strings inner ) {
+		boolean rc = false;
+		if (size() == 0 && 0 == inner.size())
+			return true;
+		else if (size() >= inner.size())
+			// this loop goes thru outer in a chunk size of inner
+			for (int o=0; rc == false && o<=size()-inner.size(); o++) {
+				// see if the inner chunk matches from posn o
+				rc = true; // lets assume it does
+				for (int i=0; rc == true && i<inner.size(); i++)
+					if (!get( o + i ).equals( inner.get( i ))) // if one doesn't match
+						rc = false;
+			}
+		return rc;
 	}
 	// ...OR: -------------------------------------------
 	// a=[ "One Two Three", "Aye Bee Cee", "Alpha Beta" ], val= "Bee" => b = [ "One Two Three", "Alpha Beta" ];
-	static public String[] removeAllMatched( String[] a, String val ) {
-		String [] b = new String[ 0 ];
-		String[] valItems = Strings.fromString( val );
-		for (int ai=0; ai<a.length; ai++) 
-			if (!Strings.containsStrings( Strings.fromString( a[ ai ]), valItems ))
-				b = Strings.append( b, a[ ai ]);
+	public Strings removeAllMatched( String val ) {
+		Strings b = new Strings();
+		Strings valItems = new Strings( val );
+		for (int ai=0; ai<size(); ai++) 
+			if (!new Strings( get( ai )).containsMatched( valItems ))
+				b.add( get( ai ));
 		return b;
 	}
 	// ---------------------------------------------
-	static public String[] removeFirst( String[] a, String val ) {
-		boolean removed = false;
-		String [] b = new String[ 0 ];
-		for (int ai=0; ai<a.length; ai++)
-			if (!removed && a[ ai ].equals( val ))
-				removed = true;
+	public Strings removeFirst( String val ) {
+		Iterator<String> si = iterator();
+		while (si.hasNext())
+			if (si.next().equals( val )) {
+				si.remove();
+				break;
+			}
+		return this;
+	}
+	public String remove( int i ) {
+		String str = "";
+		if (i>= 0 && i<size()) {
+			str = get( i );
+			super.remove( i );
+		} else
+			audit.ERROR("trying to remove "+ i +(i%10==1&&i!=11?"st":i%10==2&&i!=12?"nd":i%10==3&&i!=13?"rd":"th")+ " element");
+		return str;
+	}
+	public Strings contract( String item ) {
+		int sz=size()-1;
+		for( int i=1; i<sz; i++ )
+			if (get( i ).equals( item )) {
+				set( i-1, get( i-1 )+ item +remove( i+1 ) );
+				remove( i );
+				sz -= 2;
+			}
+		return this;
+	}
+	public Strings replace( int i, String s ) {
+		remove( i );
+		add( i, s );
+		return this;
+	}
+	public Strings append( Strings sa ) {
+		addAll( sa );
+		return this;
+	}
+	//
+	public Strings prepend( String str ) {
+		add( 0, str );
+		return this;
+	}
+	public Strings copyFrom( int n ) {
+		Strings b = new Strings();
+		for (int i=n, sz = size(); i<sz; i++)
+			b.add( get( i ));
+		return b;
+	}
+	public Strings copyAfter( int n ) {
+		Strings b = new Strings();
+		for (int i=n+1, sz = size(); i<sz; i++)
+			b.add( get( i ));
+		return b;
+	}
+	public Strings copyFromUntil( int n, String until ) {
+		Strings b = new Strings();
+		for (int i=n, sz = size(); i<sz; i++) {
+			String item = get( i );
+			if (item.equals( until ))
+				break;
 			else
-				b = Strings.append( b, a[ ai ]);
-		return b;
-	}
-	static public String[] append( String[] a, String str ) {
-		if (null == str) return a;
-		String [] b = new String[ null == a ? 1 : a.length+1 ];
-		if (a != null) for(int i=0, sz=a.length; i<sz; i++)
-			b[ i ] = a[ i ];
-		b[ b.length - 1 ] = str;
-		return b;
-	}
-	static public String[] append( String[] a, String sa[] ) {
-		if (null == a || a.length == 0) return sa;
-		if (null == sa || sa.length == 0) return a;
-		String [] b = new String[ a.length+sa.length ];
-		for(int i=0; i<a.length; i++)
-			b[ i ] = a[ i ];
-		for(int i=0; i<sa.length; i++)
-			b[ a.length + i  ] = sa[ i ];
-		return b;
-	}
-	static public String[] prepend( String[] a, String str ) {
-		String [] b = new String[ null == a ? 1 : a.length+1 ];
-		if (a != null) for(int i=0, sz=a.length; i<sz; i++)
-			b[ i+1 ] = a[ i ];
-		b[ 0 ] = str;
-		return b;
-	}
-	static public String[] copyAfter( String[] a, int n ) {
-		String [] b = null;
-		if (a != null && a.length > n+1) {
-			b = new String[ a.length - n - 1 ]; // a[3], 0 ==> b[2]
-			for (int i = 0, sz = b.length; i<sz; i++)
-				b[ i ] = a[ n+1 + i ];
+				b.add( item );
 		}
 		return b;
 	}
-	static public String[] copyFromUntil( String[] a, int n, String until ) {
-		String[] b = null;
-		if (null != a) {
-			// calc position of until token - or size of a if not found
-			int az=a.length, posn=az;
-			for (int ai=n; ai<az && posn == az; ai++)
-				if ((until != null) && a[ ai ].equals( until ))
-					posn = ai;
-			b = new String[ posn - n ];
-			for (int i = 0, sz = b.length; i<sz; i++)
-				b[ i ] = a[ n + i ];
-		}
-		return b;
-	}
-	
-	static public String[] fromNonWS( String buf ) {
-		String[] a = null;
+	static public Strings fromNonWS( String buf ) {
+		Strings a = new Strings();
 		if (buf != null) {
 			StringBuffer word = null;
 			for (int i=0, sz=buf.length(); i<sz; i++ ) {
@@ -282,59 +331,39 @@ public class Strings /*extends ArrayList<String>???*/ {
 				while( i<sz && !Character.isWhitespace( buf.charAt( i ))) { word.append( buf.charAt( i )); i++; }
 				
 				if (null != word)
-					a = append( a, word.toString());
+					a.add( word.toString());
 		}	}
 		return a;
 	}
-	private static String[] incrStringsSpace( String[] a ) {
-		String[] b = new String[ null == a ? 1 : a.length + 1 ];
-		if (a!=null) for (int i=0, sz=a.length; i<sz; i++) b[ i ] = a[ i ]; 
+	public Strings reverse() {
+		Strings b = new Strings();
+		for (int sz=size(), i=sz-1; i>=0; i--)
+			b.add( get( i ));
 		return b;
 	}
-	static public String[] insertAt( String[] a, int pos, String str ) {
-		if (str != null) {
-			int i, sz = a.length;
-			if ( pos <  0 ) pos = 0;
-			else if ( pos > sz ) pos = sz;
-			a = incrStringsSpace( a );
-			for( i=sz; i>pos; i--) a[ i ] = a[ i-1 ];
-			a[ pos ] = str;
-		}
-		return a;
-	}
-	static public String[] reverse( String[] a ) {
-		int sz=a.length;
-		String[] b = new String[ sz ];
-		for (int ai=0, bi=sz-1; ai<sz; ai++, bi-- ) b[ bi ] = a[ ai ];
-		return b;
-	}
-
 	// replace( [ "hello", "martin", "!" ], [ "martin" ], [ "to", "you" ]) => [ "hello", "to", "you", "!" ]
-	static public String[] replace( String[] a, String[] b, String[] c ) {
-		int alen = a.length, blen = b.length, clen = c.length;
-		for (int i=0; i <= alen - blen; i++) {
+	public Strings replace( Strings b, Strings c ) {
+		//audit.traceIn("replace", b.toString() +" with "+ c.toString() +" in "+ toString());
+		//boolean lookingForElipsis = false;
+		//if (c.size() == 1 && c.get( 0 ).equals( ELLIPSIS )) lookingForElipsis= true;
+		int len = size(), blen = b.size(), clen = c.size();
+		for (int i=0; i <= len - blen; i++) {
 			boolean found = true;
 			int j=0;
 			for (j=0; j<blen && found; j++)
-				if (0 != a[ i+j ].compareToIgnoreCase( b[ j ])) found=false;
+				if (!get( i+j ).equalsIgnoreCase( b.get( j ))) found=false;
 			if (found) {
-				for (j=0; j<blen; j++) a = Strings.removeAt( a, i );
-				for (j=0; j<clen; j++) a = Strings.insertAt( a, i+j, c[ j ]);
-				alen = a.length; // ...since we've messed with a
-		}	}
-		return a;
-	}
-	static public int indexOf( String[] a, String s ) {
-		int i = -1;
-		if (null != a && null != s) {
-			while ( ++i < a.length )
-				if (a[ i ].equals( s ))
-					break;
-			if (i == a.length) i = -1;
+				//if (lookingForElipsis) audit.ERROR(">>>>>>>>>>>>>>>>>>Strings.replace(): looking for and found "+ ELLIPSIS);
+				for (j=0; j<blen; j++) remove( i );
+				for (j=0; j<clen; j++) add( i+j, c.get( j ));
+				len = size(); // ...since we've messed with a
+			}
 		}
-		return i;
+		//audit.traceOut( toString());
+		return this;
 	}
-	static public boolean contain( String[] a, String s ) { return -1 != indexOf( a, s ); }
+	static public boolean contain( Strings a, String s ) { return -1 != a.indexOf( s ); }
+	public boolean contain( String s ) { return -1 != indexOf( s ); }
 	
 	// deals with matched and unmatched values:
 	// [ "a", "$matched", ".",  "b" ] => [ "a", "martin", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
@@ -342,59 +371,66 @@ public class Strings /*extends ArrayList<String>???*/ {
 	// [ "a", "$unmatch", ".",  "b" ] => [ "a", "_USER", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
 	// [ "we are holding hands", "."  ] => [ "we", "are", "holding", "hands", "." ] -- jik - just in case!
 	// matches are from tags, *ap contains mixed case - any UPPERCASE items should match matches OR envvars.
-	static public String[][] split( String[] a, String[] terminators ) {
-		String[][] split = new String[2][];
-		if ( a.length > 0 ) {
-			boolean done = false;
-			// split remote array into local array -- splitting each entry...
-			while (!done && a.length > 0) {
-				String[] b = Strings.fromString( a[ 0 ]); // split each entry incase they're a phrase!
-				for (int bi = 0, sz=b.length; bi<sz; bi++) split[ 0 ] = Strings.append( split[ 0 ], b[ bi ]);
-				done = Strings.contain( terminators, a[ 0 ]);
-				a = Strings.removeAt( a, 0 );
-			}
-			// --
-			// the last utterance may not be terminated -- add the default terminator
-			// if, however, we need not add terms in some cases,
-			// we may want to move this code to where it is called -- e.g. Rule.reUtter()
-			if (null != split[ 0 ] && split[ 0 ].length > 0)
-				if (Strings.contain( terminators, split[ 0 ][ split[ 0 ].length - 1 ]))
-					split[ 0 ] = Strings.append( split[ 0 ], terminators[ 0 ]);	
-			// --
+	public ArrayList<Strings> divide( String divisor ) {
+		ArrayList<Strings> divisions = new ArrayList<Strings>();
+		Strings division = new Strings();
+		for (String s : this) {
+			if (s.equals( divisor )) {
+				divisions.add( division );
+				division = new Strings();
+			} else
+				division.add( s );
 		}
-		split[ 1 ] = a;
-		return split;
+		divisions.add( division );
+		return divisions;
 	}
-	// [ 'some', 'bread', '+', 'fish'n'chips', '+', 'some', 'milk' ], "+"  => [  'some bread', 'fish and chips', 'some milk' ]
-	static public String[] rejig( String[] a, String ipSep, String opSep ) {
+	// [ 'some', 'bread', '+', 'fish'n'chips', '+', 'some', 'milk' ], "+"
+	//                                => [  'some bread', 'fish and chips', 'some milk' ]
+	private Strings normalise( String ipSep, String opSep ) {
+		//audit.traceIn( "normalise", "ipSep='"+ ipSep +"' opSep='"+ opSep +"'");
 		// remember, if sep='+', 'fish', '+', 'chips' => 'fish+chips' (i.e. NOT 'fish + chips')
 		// here: some coffee + fish + chips => some coffee + fish and chips
-		String[] values = new String[ 0 ];
-		if (a != null) {
+		Strings values = new Strings();
+		if (size() > 0) {
 			int i = 0;
-			String value = a[ i++ ];
-			String localSep = opSep;
-			while (i < a.length) {
-				if (a[ i ].equals( ipSep )) {
-					values = Strings.append( values, value );
+			String value = get( 0 ); //
+			//audit.audit(":gotVal:"+ value +":");
+			String localSep = opSep; // ""; // only use op sep on appending subsequent strings
+			while (++i < size()) {
+				String tmp = get( i );
+				//audit.audit(":gotTmp:"+ tmp +":");
+				if (tmp.equals( ipSep )) {
+					//audit.audit("normalise():adding:"+ value +":");
+					values.add( value );
 					value = "";
 					localSep = "";
 				} else {
-					value += ( localSep + a[ i ]);
+					value += ( localSep + tmp );
 					localSep = opSep;
-				}
-				i++;
-			}
-			values = Strings.append( values, value );
+					//audit.audit(":valNow:"+ value +":");
+			}	}
+			//audit.audit("normalise():adding:"+ value +":");
+			values.add( value );
 		}
+		//return audit.traceOut( values );
 		return values;
 	}
-	static public String[] rejig( String[] a, String sep ) {
-		return rejig( a, sep, " " );
+	/*
+	 * normalise with a parameter uses that param as a user defined separator, rather than whitespace
+	 * normalise([ "one", "two", "+", "three four" ], "+") => [ "one two", "three four" ]
+	 */
+	public Strings normalise( String sep ) {
+		return normalise( sep, " " );
 	}
-	// TODO: remove rejig, above? Or, combine with expand() and normalise()/
-	// NO: Need Stringses to Strings & vv [ "some", "beer", "+", "some crisps" ] => "some beer", "some crisps" ]
-	// [ "some beer", "some crisps" ] => [ "some", "beer", "+", "some", "crisps" ]
+	// normalise([ "one", "two three" ]) => [ "one", "two", "three" ]
+	public Strings normalise() {
+		Strings a = new Strings();
+		for (String s1 : this )
+			for ( String s2: new Strings( s1 ))
+				a.add( s2 );
+		return a;
+	}
+	
 	// TODO: expand input, and apply each thought...
 	// I need to go to the gym and the jewellers =>
 	// (I need to go to the gym and I need to go to the jewellers =>)
@@ -402,24 +438,27 @@ public class Strings /*extends ArrayList<String>???*/ {
 	/* [ [ "to", "go", "to", "the", "gym" ], [ "the", "jewellers" ] ] 
 	 * => [ [ "to", "go", "to", "the", "gym" ], [ "to", "go", "to", "the", "jewellers" ] ]
 	 */
-	static public String[][] expand( String[][] a ) {
-		return a;
-	}
-	
-	// [ "one", "two three" ] => [ "one", "two", "three" ]
-	// TODO: a bit like re-jig aove???
-	static public String[] normalise( String[] sa ) {
-		String[] a = new String[ 0 ];
-		for (String s1 : sa ) 
-			for ( String s2: Strings.fromString( s1 ))
-				a = Strings.append( a, s2 );
-		return a;
+	// [ "THIS", "is", "Martin" ] => [ "THIS", "is", "martin" ]
+	public Strings decap() {
+		int i = -1;
+		//remove all capitalisation... we can re-capitalise on output.
+		while (size() > ++i) {
+			String tmp = get( i );
+			if (isCapitalised( tmp ))
+				set( i, Character.toLowerCase( tmp.charAt( 0 )) + tmp.substring( 1 ));
+		}
+		return this;
 	}
 	private static boolean isCapitalised( String str ) {
 		if (null == str) return false;
-		int i = 0;
-		if (Character.isUpperCase( str.charAt( i ))) while (str.length() > ++i && Character.isLowerCase( str.charAt( i )));
-		return str.length() == i; // capitalised if we're at the end of the string
+		int len = str.length();
+		if (Character.isUpperCase( str.charAt( 0 )) && len > 1) {
+			int i = 0;
+			while (len > ++i && Character.isLowerCase( str.charAt( i )))
+				;
+			return str.length() == i; // capitalised if we're at the end of the string
+		}
+		return false;
 	}
 	public static boolean isUpperCase( String a ) {
 		for (int i=0; i<a.length(); i++)
@@ -433,37 +472,141 @@ public class Strings /*extends ArrayList<String>???*/ {
 				return false;
 		return true;
 	}
-		
-	// [ "THIS", "is Martin" ] => [ "THIS", "is", "martin" ]
-	static public String[] decap( String[] a ) {
-		String[] b = null;
-		int i = -1;
-		//remove all capitalisation... we can re-capitalise on output.
-		if (null != a) while (a.length > ++i) {
-			int ti = -1;
-			String[] t = fromString( a[ i ]); // split each entry in case they're a phrase!
-			while (t.length > ++ti) {
-				if (isCapitalised( t[ ti ])) t[ ti ] = Character.toLowerCase( t[ ti ].charAt( 0 )) + t[ ti ].substring( 1 );
-				b = Strings.append( b, t[ ti ]);
-		}	}
-		return b;
+	public Strings trimAll( char ch ) {
+		int i=0;
+		for( String s : this )
+			set( i++, trim( s, ch ));
+		return this;
 	}
-	static public String trim( String a, char ch ) {
+	static public String trim( String a, char ch ) { return triml( a, a.length(), ch ); }
+	static public String triml( String a, int asz, char ch ) {
 		// (a="\"hello\"", ch='"') => "hello"; ( "ohio", 'o' ) => "hi"
-		if (a.length() == 2 && a.charAt( 0 ) == ch && a.charAt( 1 ) == ch)
+		char ch0 = a.charAt( 0 );
+		if (asz == 2 && ch0 == ch && a.charAt( 1 ) == ch)
 			return "";
-		else if (a.length() > 2 && a.charAt( 0 ) == ch && a.charAt( a.length()-1 ) == ch)
-			return a.substring( 1, a.length()-1 );
+		else if (asz > 2 && ch0 == ch && a.charAt( asz-1 ) == ch)
+			return a.substring( 1, asz-1 );
 		else
 			return a;
 	}
+	static public String stripQuotes( String s ) {
+		int sz = s.length();
+		if (sz>1) {
+			char ch = s.charAt( 0 );
+			     if (ch == '\'') s = Strings.triml( s, sz, '\'' );
+			else if (ch ==  '"') s = Strings.triml( s, sz,  '"' );
+		}
+		return s; 
+	}
+	
 	public static void main( String args[]) {
-		String[] a = Strings.fromString( "failure won't 'do' 'don't'" );
-		for (int i=0; i<a.length; i++)
-			System.out.println( a[ i ]);
-		String[] b = Strings.fromString( "failure" ),
-		          c = Strings.fromString( "world" );
-		//args = Strings.insertAt( args, -1, "martin" );
-		args = Strings.replace( args, b, c );
-		System.out.println( "===> ["+ Strings.toString( args, "'", "', '", "'" ) +"] <===" );
+		Audit.turnOn();
+		audit.audit( "hello, world" );
+		audit.audit( "a: "+ new Strings( "failure won't 'do' 'don't'" ));
+		audit.audit( "b: "+ new Strings( "..........." ));
+		audit.audit( "c: "+ new Strings( "+2.0" ));
+		audit.audit( "d: "+ new Strings( "quantity+=2.0" ));
+		
+		Strings a = new Strings("hello failure"),
+				b = new Strings( "failure" ),
+		        c = new Strings( "world" );
+		audit.audit( "e: ["+ a.replace( b, c ).toString( "'", "', '", "'" ) +"]" );
+		String tmp = "+=6";
+		audit.audit( "tmp: "+ tmp.substring( 0, 1 ) + tmp.substring( 2 ));
+	
+		audit.audit("tma:"+(tokenMatch( ELLIPSIS, ELLIPSIS, 0, ELLIPSIS.length() )?"true":"false")+"=>true");
+		audit.audit("tma:"+(tokenMatch( ELLIPSIS, ELLIPSIS, 1, ELLIPSIS.length() )?"true":"false")+"=>false");
+		audit.audit("tma:"+(tokenMatch( ELLIPSIS,     "..", 0,     "..".length() )?"true":"false")+"=>false");
+		
+		/* /
+		String s = "this test should pass";
+		Strings sa1 = new Strings( s, ' ' );
+		//Strings sa2 = new Strings( s, " " );
+		//String[] sa3 = Strings.fromLines( "this\ntest\nshould\npass" );
+		//audit.audit( "equals test "+ (sa1.equals( sa2 ) ? "passes" : "fails" ));
+		audit.audit( "===> ["+ sa1.toString( "'", "', '", "'" ) +"] <===" );
+		//audit.audit( "===> ["+ sa2.toString( Strings.SQCSV ) +"] <===" );
+	
+		
+		//static public String[] removeAt( String[] a, int n ) ;
+		//static public String[] removeAll( String[] a, String val ) ;
+		// EITHER:
+		//String[] a = new String[] {"One Two Three", "this test passes", "Alpha Beta" };
+		//String  val= "passes";
+		//audit.audit( "getContext test: "+ getContext( a, val ));
+		
+		Strings outer = new Strings( "a strong beer" );
+		Strings inner = new Strings( "strong beer" );
+		audit.audit( "containsStrings test "+ (outer.containsMatched( inner ) ? "passes" : "fails" ));
+		// ...OR: -------------------------------------------
+		// a=[ "One Two Three", "Aye Bee Cee", "Alpha Beta" ], val= "Bee" => b = [ "One Two Three", "Alpha Beta" ];
+		//static public String[] removeAllMatched( String[] a, String val ) ;
+		// ---------------------------------------------
+		//static public String[] removeFirst( String[] a, String val ) ;
+		//audit.audit( toString( removeFirst( Strings.fromString( "this test passes" ), "test" ), SPACED ));
+		//static public String[] append( String[] a, String str ) ;
+		//audit.audit( toString( append( Strings.fromString( "this test " ), "passes" ), SPACED ));
+		//static public String[] append( String[] a, String sa[] ) ;
+		//audit.audit( toString( append( fromString( "this test " ), fromString( "passes" )), SPACED ));
+		//static public String[] prepend( String[] a, String str ) ;
+		//audit.audit( toString( prepend( fromString( "test passes" ), "this" ), Strings.SPACED ));
+		//static public String[] copyAfter( String[] a, int n ) ;
+		//audit.audit( toString( copyAfter( fromString( "error this test passes" ), 0 ), SPACED ));
+		//static public String[] copyFromUntil( String[] a, int n, String until ) ;
+		//Strings xxx = new Strings( "error this test passes error" );
+		//audit.audit( toString( xxx.copyFromUntil( 1, "passes" ), SPACED ));
+		//static public String[] fromNonWS( String buf ) ;
+	/*	audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public String[] insertAt( String[] a, int pos, String str ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public String[] reverse( String[] a ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		// replace( [ "hello", "martin", "!" ], [ "martin" ], [ "to", "you" ]) => [ "hello", "to", "you", "!" ]
+		//static public String[] replace( String[] a, String[] b, String[] c ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public int indexOf( String[] a, String s ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public boolean contain( String[] a, String s ) ; return -1 != indexOf( a, s ); }
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		
+		// deals with matched and unmatched values:
+		// [ "a", "$matched", ".",  "b" ] => [ "a", "martin", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
+		// [ "a",  "MATCHED", ".",  "b" ] => [ "a", "martin", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
+		// [ "a", "$unmatch", ".",  "b" ] => [ "a", "_USER", "." ] += [ "b", "." ] -- add period like Tag.c::newTagFromDesc...()
+		// [ "we are holding hands", "."  ] => [ "we", "are", "holding", "hands", "." ] -- jik - just in case!
+		// matches are from tags, *ap contains mixed case - any UPPERCASE items should match matches OR envvars.
+		//static public String[][] split( String[] a, String[] terminators ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+
+		// [ 'some', 'bread', '+', 'fish'n'chips', '+', 'some', 'milk' ], "+"  => [  'some bread', 'fish and chips', 'some milk' ]
+		//static public String[] rejig( String[] a, String ipSep, String opSep ) ;
+		//static public String[] rejig( String[] a, String sep ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		// todo: remove rejig, above? Or, combine with expand() and normalise()/
+		// NO: Need Stringses to Strings & vv [ "some", "beer", "+", "some crisps" ] => "some beer", "some crisps" ]
+		// [ "some beer", "some crisps" ] => [ "some", "beer", "+", "some", "crisps" ]
+		// todo: expand input, and apply each thought...
+		// I need to go to the gym and the jewellers =>
+		// (I need to go to the gym and I need to go to the jewellers =>)
+		// I need to go to the gym. I need to go to the jewellers.
+		//static public String[][] expand( String[][] a ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+
+		// [ "one", "two three" ] => [ "one", "two", "three" ]
+		// todo: a bit like re-jig aove???
+		//static public String[] normalise( String[] sa ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public boolean isUpperCase( String a ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		//static public boolean isUpperCaseWithHyphens( String a ) ;
+		audit.audit( toString( ( Strings.fromString( "this test " ), "passes" ), Strings.SPACED ));
+		 *
+		 */
+		// [ "THIS", "is Martin" ] => [ "THIS", "is", "martin" ]
+		//audit.audit( Strings.toString( decap( Strings.fromString( "THIS is Martin" )), Strings.DQCSV ) +" should equal [ \"THIS\", \"is\", \"martin\" ]" );
+		//audit.audit( trim( "\"hello\"", '"' ) +" there == "+ trim( "ohio", 'o' ) +" there! Ok?" );
+		
+		//audit.audit( Strings.toString( Strings.fromString( "failure won't 'do' 'don't'" ), Strings.DQCSV ));
+		//audit.audit( Strings.toString( Strings.insertAt( Strings.fromString( "is the greatest" ), -1, "martin" ), Strings.SPACED ));
+		//audit.audit( "" );
 }	}

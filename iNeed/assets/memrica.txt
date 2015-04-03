@@ -1,0 +1,29 @@
+     On "this is a picture of PHRASE-X", perform "entity create X".
+Then on "this is a picture of PHRASE-X", perform "variable set subject X".
+Then on "this is a picture of PHRASE-X", perform "variable set action  snap".
+Then on "this is a picture of PHRASE-X", reply  "ok, take a picture of X".
+
+     On "this is the sound of PHRASE-X", perform "entity create X".
+Then on "this is the sound of PHRASE-X", perform "variable set subject X".
+Then on "this is the sound of PHRASE-X", perform "variable set action  record".
+Then on "this is the sound of PHRASE-X", reply  "ok, record the sound of X".
+
+     On "this is PHRASE-X", this is a picture of X.
+     On "this is PHRASE-X", this is the sound of X.
+#
+####
+#
+     On "show me a picture of PHRASE-X", perform "entity exists X".
+Then on "show me a picture of PHRASE-X", if not, reply "Sorry, I do not know X".
+Then on "show me a picture of PHRASE-X", perform "variable set subject X".
+Then on "show me a picture of PHRASE-X", perform "variable set action  show".
+Then on "show me a picture of PHRASE-X", reply "here are pictures of X".
+
+     On "play me the sound of PHRASE-X", perform "entity exists X".
+Then on "play me the sound of PHRASE-X", if not, reply "Sorry, I do not know X".
+Then on "play me the sound of PHRASE-X", perform "variable set subject X".
+Then on "play me the sound of PHRASE-X", perform "variable set action  play".
+Then on "play me the sound of PHRASE-X", reply "here are the sounds of X".
+
+On "show me PHRASE-X", show me a picture of X.
+On "play me PHRASE-X", play me the sound of X.

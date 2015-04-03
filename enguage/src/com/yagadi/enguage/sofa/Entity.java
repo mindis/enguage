@@ -3,14 +3,14 @@ package com.yagadi.enguage.sofa;
 import java.io.File;
 
 import com.yagadi.enguage.sofa.Overlay;
-import com.yagadi.enguage.util.Strings;
 import com.yagadi.enguage.util.Audit;
-import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Filesystem;
+import com.yagadi.enguage.util.Shell;
+import com.yagadi.enguage.util.Strings;
 
 class EntityShell extends Shell {
-	EntityShell( String[] args ) { super( "Entity", args );}
-	public String interpret( String[] argv ) { return Entity.interpret( argv ); }
+	EntityShell( Strings args ) { super( "Entity", args );}
+	public String interpret( Strings argv ) { return Entity.interpret( argv ); }
 }
 
 public class Entity {
@@ -41,11 +41,11 @@ public class Entity {
 	public static boolean create( String name ) { return Filesystem.create( name( name, Overlay.MODE_WRITE ) );}
 	
 	// really should be in a corresponding Component.c module!
-	public static boolean createComponent( String[] a ) {
+	public static boolean createComponent( Strings a ) {
 		boolean rc = false;
 		String name = "";
-		for (int i=0, sz=a.length; i<sz; i++) { // ignore all initial unsuccessful creates
-			name += a[ i ];
+		for (int i=0, sz=a.size(); i<sz; i++) { // ignore all initial unsuccessful creates
+			name += a.get( i );
 			rc = Filesystem.create( name );
 			name += "/";
 		}
@@ -89,25 +89,27 @@ public class Entity {
 		return status;
 	}
 	
-	static public String interpret( String[] argv ) {
+	static public String interpret( Strings argv ) {
 		// N.B. argv[ 0 ]="create", argv[ 1 ]="martin wheatman"
 		String rc = Shell.FAIL;
-		if (argv.length == 2 && argv[ 0 ].equals("create"))
-			rc = create( argv[ 1 ])? Shell.SUCCESS : Shell.FAIL;
-		else if (argv.length >= 3 && argv[ 0 ].equals("component"))
-			rc = createComponent( Strings.copyAfter( argv, 1 ))? Shell.SUCCESS : Shell.FAIL;
-		else if (argv.length == 2 && argv[ 0 ].equals("delete"))
-			rc = delete( argv[ 1 ])? Shell.SUCCESS : Shell.FAIL;
-		else if (argv.length == 2 && argv[ 0 ].equals("exists"))
-			rc = exists( argv[ 1 ])? Shell.SUCCESS : Shell.FAIL;
-		else if (argv.length == 2 && argv[ 0 ].equals("ignore"))
-			rc = ignore( argv[ 1 ])? Shell.SUCCESS : Shell.FAIL;
-		else if (argv.length == 2 && argv[ 0 ].equals("restore"))
-			rc = restore( argv[ 1 ])? Shell.SUCCESS : Shell.FAIL;
+		String cmd = argv.get( 0 ),
+				ent = argv.get( 1 );
+		if (argv.size() == 2 && cmd.equals("create"))
+			rc = create( ent)? Shell.SUCCESS : Shell.FAIL;
+		else if (argv.size() >= 3 && cmd.equals("component"))
+			rc = createComponent( argv.copyAfter( 1 ))? Shell.SUCCESS : Shell.FAIL;
+		else if (argv.size() == 2 && cmd.equals("delete"))
+			rc = delete( ent)? Shell.SUCCESS : Shell.FAIL;
+		else if (argv.size() == 2 && cmd.equals("exists"))
+			rc = exists( ent)? Shell.SUCCESS : Shell.FAIL;
+		else if (argv.size() == 2 && cmd.equals("ignore"))
+			rc = ignore( ent)? Shell.SUCCESS : Shell.FAIL;
+		else if (argv.size() == 2 && cmd.equals("restore"))
+			rc = restore( ent)? Shell.SUCCESS : Shell.FAIL;
 		else
 			System.err.println(
 					"Usage: entity [create|exists|ignore|delete] <entityName>\n"+
-					"Given: "+ Strings.toString( argv, Strings.SPACED ));
+					"Given: entity "+ argv.toString( Strings.SPACED ));
 		return rc;
 	}
 	
@@ -116,6 +118,6 @@ public class Entity {
 		String rc = Overlay.autoAttach();
 		if (!rc.equals( "" ))
 			System.out.println( "Ouch!" );
-		else
-			new EntityShell( args ).run();
+		//else
+		//	new EntityShell( args ).run();
 }	}

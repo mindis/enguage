@@ -1,6 +1,7 @@
 # N.b. Colloquialisms are not PAS aware so, "X is great" doesn't match onto "martin is great" :(
 # Colloquialism: set it up...
-On "QUOTED-X means QUOTED-Y.", perform "colloquial add Y X".
+On "QUOTED-X means QUOTED-Y", perform "colloquial add Y X".
+On "PHRASE-X means PHRASE-Y", perform "colloquial add Y = X".
 
 # ...and use it:
 "I've"    means "I have".

@@ -1,11 +1,15 @@
 package com.yagadi.enguage.sofa;
 
 import java.io.File;
-import com.yagadi.enguage.util.*;
+
+import com.yagadi.enguage.util.Audit;
+import com.yagadi.enguage.util.Filesystem;
+import com.yagadi.enguage.util.Shell;
+import com.yagadi.enguage.util.Strings;
 
 class ValuesTest extends Shell {
-	ValuesTest( String[] args ) { super( "ValuesTes", args ); }
-	public String interpret( String[] a ) { return Value.interpret( a ); }
+	ValuesTest( Strings args ) { super( "ValuesTes", args ); }
+	public String interpret( Strings a ) { return Value.interpret( a ); }
 }
 
 public class Value {
@@ -21,22 +25,18 @@ public class Value {
 	}
 
 	// statics
-	static public String name(  String entity, String attr, String rw ) { return Overlay.fsname( entity +"/"+ attr, rw ); }
+	static public String name( String entity, String attr, String rw ) { return Overlay.fsname( entity +"/"+ attr, rw ); }
 	
 	// members
 	// TODO: cache items[]? Lock file - this code is not suitable for IPC? Exists in constructor?
 	// set() methods return change in number of items
-	public boolean exists() {   return Filesystem.exists(        name( ent, attr, Overlay.MODE_READ )); }
-	public void    set( String val ) { Filesystem.stringToFile(  name( ent, attr, Overlay.MODE_WRITE ), val ); }
-	public void    unset() {           Filesystem.destroyEntity( name( ent, attr, Overlay.MODE_WRITE )); }
-	public String  get() {
-		// stringFromFile() currently returns null if non-existent :/
-		String rc = Filesystem.stringFromFile( name( ent, attr, Overlay.MODE_READ ) );
-		return rc == null ? "" : rc;
-	}
+	public boolean exists() {    return Filesystem.exists(         name( ent, attr, Overlay.MODE_READ )); }
+	public void    set( String val ) {  Filesystem.stringToFile(   name( ent, attr, Overlay.MODE_WRITE ), val ); }
+	public void    unset() {            Filesystem.destroyEntity(  name( ent, attr, Overlay.MODE_WRITE )); }
+	public String  getAsString(){return Filesystem.stringFromFile( name( ent, attr, Overlay.MODE_READ )); }
 	
-	public boolean equals( String val ) { return get().equals( val ); }
-	public boolean contains( String val ) { return get().contains( val ); }
+	private boolean equals( String val ) { return getAsString().equals( val ); }
+	private boolean contains( String val ) { return getAsString().contains( val ); }
 	
 	// this works..
 	private static final String marker = "this is a marker file";
@@ -59,7 +59,7 @@ public class Value {
 		String deletedName = Entity.deleteName( writeName );
 		File deletedFile = new File( deletedName );
 		String content = Filesystem.stringFromFile( deletedName );
-		if (content != null && content.equals( marker )) {
+		if (content.equals( marker )) {
 			audit.debug( "deleting marker file "+ deletedFile.toString());
 			deletedFile.delete();
 		} else {
@@ -68,37 +68,37 @@ public class Value {
 			deletedFile.renameTo( restoredFile );
 	}	}
 	
-	static private String usage( String[] a ) {
+	static private String usage( Strings a ) {
 		System.out.println(
 				"Usage: [set|get|add|removeFirst|removeAll|exists|equals|delete] <ent> <attr>[ / <attr> ...] [<values>...]\n"+
-				"given: "+ Strings.toString( a, Strings.CSV ));
+				"given: "+ a.toString( Strings.CSV ));
 		return Shell.FAIL;
 	}
-	static public String interpret( String[] sa ) {
+	static public String interpret( Strings a ) {
 		// sa might be: [ "add", "_user", "need", "some", "beer", "+", "some crisps" ]
-		audit.traceIn( "interpret", Strings.toString( sa, Strings.CSV ));
-		String[] a = Strings.normalise( sa );
+		audit.traceIn( "interpret", a.toString( Strings.CSV ));
+		a = a.normalise();
 		String rc = Shell.SUCCESS;
-		if (null != a && a.length > 2) {
+		if (null != a && a.size() > 2) {
 			int i = 2;
-			String cmd = a[ 0 ], entity = a[ 1 ], value = null, attribute = null;
-			if (i<a.length) { // components? martin car / body / paint / colour red
-				attribute = a[ i ];
-				while (++i < a.length && a[ i ].equals( "/" ))
-					attribute += ( "/"+ a[ i ]);
+			String cmd = a.get( 0 ), entity = a.get( 1 ), value = null, attribute = null;
+			if (i<a.size()) { // components? martin car / body / paint / colour red
+				attribute = a.get( i );
+				while (++i < a.size() && a.get( i ).equals( "/" ))
+					attribute += ( "/"+ a.get( i ));
 			}
 			//audit.debug( "entity => '"+ entity +"'" );
 			//audit.debug( "attr => '"+ attribute +"'" );
 			// [ "some", "beer", "+", "some crisps" ] => "some beer", "some crisps" ]
-			//String[] values = Strings.rejig( Strings.copyAfter( a, i-1 ), sep );
-			String val = Strings.toString( Strings.copyAfter( a, i-1 ), Strings.SPACED ); 
+			//Strings values = Strings.rejig( Strings.copyAfter( a, i-1 ), sep );
+			String val = a.copyAfter( i-1 ).toString( Strings.SPACED ); 
 			//audit.debug( "values => ["+ Strings.toString( values,  Strings.DQCSV ) +"]" );
 			
 			Value m = new Value( entity, attribute ); //attribute needs to be composite: dir dir dir file values
 			if (cmd.equals( "set" )) {
 				m.set( val );
 			} else if (null == value && cmd.equals( "get" )) {
-				rc = m.get();
+				rc = m.getAsString();
 			} else if (cmd.equals( "unset" )) {
 				rc = Shell.SUCCESS;
 				m.unset();
@@ -119,11 +119,11 @@ public class Value {
 		audit.traceOut( rc );
 		return rc;
 	}
-	public static void main( String[] args ) {
+	public static void main( String args[] ) {
 		Overlay.Set( Overlay.Get());
 		String rc = Overlay.autoAttach();
 		if (!rc.equals( "" ))
 			System.out.println( "Ouch!" );
 		else
-			new ValuesTest( args ).run();
+			new ValuesTest( new Strings( args )).run();
 }	}

@@ -7,28 +7,34 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
 import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.sofa.Preferences;
 
 //* this code was developed from the background example kindly provided by www.androidhive.info
 public class SplashActivity extends Activity {
-
-	Preferences p;
+	/*
+	 * iNeed - MainActivity.
+	 * 
+	 * This code is released under the Lesser GPL
+	 * - do with it what you will, just keep the below
+	 *   copyright for the swayths of code you leave in!
+	 * 
+	 * (c) yagadi ltd, 2013-4.
+	 */
+	//Preferences p;
 	
-	// this value is used in device.txt
-	public final static String  hosPref     = "prefStartupHelp";
+	// this value is used in device.txt - refers to Reply 
+	public final static String  hosPref     = "hos";
 	public final static boolean initHosPref = true;
 	
 	// -- widgets
 	private Button         ok = null;
-	private CheckBox      hos = null; // help on startup
 	private ScrollView scroll = null; // placeholder
-	private TextView   //help = null,
-	                    title = null;
+	private TextView    title = null;
 	private ImageView    icon = null;
 	
 	private void showHosOrIcon( boolean hos ) {
@@ -53,8 +59,9 @@ public class SplashActivity extends Activity {
 		title.setText( title.getText() /* +" ("+ this.getString( R.string.version_id ) +")"*/ ); 
 		
 		// tell the sofa what preferences to use
-		p = new Preferences( PreferenceManager.getDefaultSharedPreferences( this ));
-		Preferences.setPreferences( p );
+		Preferences.setPreferences(
+			new Preferences( PreferenceManager.getDefaultSharedPreferences( this ))
+		);
 		
 		// initialise OK button
 		ok = (Button) findViewById( R.id.splash_ok );
@@ -68,15 +75,7 @@ public class SplashActivity extends Activity {
 			}	});
 		
 		// setup help on start up option
-		boolean showHos = p.get( hosPref, initHosPref );
-		hos = (CheckBox) findViewById( R.id.splashHelpCb );
-		hos.setChecked( showHos );
-		hos.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				p.set( hosPref, ((CheckBox)v).isChecked() );
-				showHosOrIcon(  ((CheckBox)v).isChecked() );
-		}	});
-		showHosOrIcon( showHos );
+		showHosOrIcon( MainActivity.visualMode() && MainActivity.verboseMode() );
 		
 		// now read the config file in the background...
 		new ReadConfig( this ).execute();
@@ -92,14 +91,14 @@ public class SplashActivity extends Activity {
 		protected void onPreExecute() { super.onPreExecute(); }
 		@Override
 		protected Void doInBackground(Void... arg0) {
-			Enguage.interpreter = new Enguage( ctx );
-			Enguage.interpreter.loadConfig();
+			Enguage.e = new Enguage( ctx );
+			Enguage.e.loadConfig( Enguage.configFilename );
 			return null;
 		}
 		@Override
 		protected void onPostExecute( Void result ) {
 			super.onPostExecute( result );
-			if ( ctx.p.get( hosPref, initHosPref )) {
+			if ( MainActivity.verboseMode() && MainActivity.visualMode()) {
 				// just enable OK button, and wait for user confirmation
 				if (ok == null) ok = (Button) findViewById( R.id.splash_ok );
 				ok.setEnabled( true );

@@ -2,18 +2,64 @@ package com.yagadi.enguage.concept;
 
 import java.util.ArrayList;
 
-import com.yagadi.enguage.expression.*;
-import com.yagadi.enguage.util.*;
+import com.yagadi.enguage.expression.Reply;
+import com.yagadi.enguage.sofa.Attribute;
+import com.yagadi.enguage.util.Audit;
 
 public class Sign extends Tag {
 	static Audit audit = new Audit("Sign");
 
+	/*  The complexity of a sign, used to rank signs in a repertoire.
+	 *  "the eagle has landed" comes before "the X has landed", BUT
+	 *  "the    X    Y-PHRASE" comes before "the Y-PHRASE" so it is not
+	 *  a simple count of tags, phrased hot-spots "hoover-up" tags!
+	 *  Phrased hot-spot has a large complexity, and any normal tags
+	 *  will actually bring this complexity down!
+	 *  Think of: "a bad liar" as a better person.
+	 *  
+	 *  Three planes of complexity: bp tags phrase
+	 *  ==========================
+	 *  complexity increases with   1xm bp 1->100.
+	 *  complexity increases with 100xn tags 100->10000
+	 *  if phrase exists, complexity counts down from 1000000:
+	 *  10000 x m bp,   range = 10000 -> 100000
+	 *    100 x n tags, range =   100 -> 10000, as before
+	 */
+	private int  complexity;
+	public  int getComplexity() { return complexity; }
+	public  int setComplexity() {
+		complexity = 0;
+		boolean infinite = false;
+		int boilerplate = 0, tags = 0;
+		
+		for (Tag t : content()) {
+			boilerplate += t.prefixAsStrings().size();
+			if (t.attributes().get( "phrase" ).equals( "phrase" ))
+				infinite = true;
+			else if (!t.name().equals( "" ))
+				tags ++;
+		}
+		// limited to 100bp == 1tag, or phrase + 100 100tags/bp
+		return complexity = infinite ? 1000000 - 10000*boilerplate - 100*tags : 100*tags + boilerplate;
+	}
+	
+	public int rank( Signs ss ) {
+		int rank = 0;
+		for (Sign s : ss)
+			if (complexity >= s.getComplexity()) // >= orders in repertoire file order
+				rank++;
+			else
+				break;
+		return rank;
+	}
+
+	
 	// methods need to return correct class of this
 	public Sign attribute( String name, String value ) { attrs.add( new Attribute( name, value )); return this; }
 	public Sign content( Tag t ) {
-		audit.traceIn( "content", "NAME='"+ t.name() +"', id='"+ t.attribute("id") +"'" );
-		content.append( t );
-		audit.traceOut();
+		//audit.traceIn( "content", "NAME='"+ t.name() +"', id='"+ t.attribute("id") +"'" );
+		content.add( t );
+		//audit.traceOut();
 		return this;
 	}
 	@Override
@@ -34,6 +80,7 @@ public class Sign extends Tag {
 		while (!r.isDone() && a.size() > ++i) {
 			String name  = a.get( i ).name(),
 			       value = a.get( i ).value();
+			//audit.debug( name +"='"+ value +"'" );
 			r = name.equals( Engine.NAME ) ?
 					new Engine(      name, value ).mediate( r )
 				: name.equals( Autopoiesis.APPEND )  ||
@@ -47,17 +94,17 @@ public class Sign extends Tag {
 		return r;
 	}
 	private final static String indent = "    ";
-	public String toString() {
-		return prefix + (name.equals( "" ) ? "" :
-			(indent +"<"+ name +" "+ attrs.toString( "\n      " )+ // attributes has no preceding space
-			(null == content() ? "/>" : ( ">\n"+ indent + indent + content().toString() + "</"+ name +">" ))))
+	public String toString( int n ) {
+		return prefix + (name().equals( "" ) ? "" :
+			(indent +"<"+ name() +" n='"+ n +"' complexity='"+ complexity + "' " +attrs.toString( "\n      " )+
+			(null == content() ? "/>" : ( ">\n"+ indent + indent + content().toString() + "</"+ name() +">" ))))
 			+ postfix + "\n";
 	}
-	/*public static void main( String argv[]) {
+	public static void main( String argv[]) {
 		Sign p = new Sign();
 		p.attribute("reply", "hello world");
 		p.content( new Tag().prefix( "hello" ));
 		Reply r = new Reply();
 		Intention intent = new Intention( "say", "hello world" );
 		r = intent.mediate( r );
-}*/	}
+}	}

@@ -1,10 +1,19 @@
+/*
+ * iNeed - MainActivity.
+ * 
+ * This code is released under the Lesser GPL
+ * - do with it what you will, just keep the below
+ *   copyright for the swayths of code you leave in!
+ * 
+ * (c) yagadi ltd, 2013-4.
+ */
+
 package com.yagadi.iNeed;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
 import android.app.Activity;
-import android.support.v7.app.ActionBarActivity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -12,6 +21,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.support.v7.app.ActionBarActivity;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,38 +33,67 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yagadi.enguage.Enguage;
+import com.yagadi.enguage.concept.Engine;
+import com.yagadi.enguage.concept.Repertoire;
+import com.yagadi.enguage.expression.Colloquial;
 import com.yagadi.enguage.expression.Language;
-import com.yagadi.enguage.expression.Reply;
-import com.yagadi.enguage.sofa.List;
 import com.yagadi.enguage.sofa.Preferences;
-import com.yagadi.enguage.sofa.Sofa;
 import com.yagadi.enguage.sofa.Variable;
+import com.yagadi.enguage.sofa.tier2.Item;
+import com.yagadi.enguage.sofa.tier2.List;
 import com.yagadi.enguage.util.Audit;
+import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 public class MainActivity extends ActionBarActivity implements TextToSpeech.OnInitListener {
 
 	//static private Audit audit = new Audit( "MainActivity" );
 
-	public  boolean oneButtonMode() { return Preferences.getPreferences().get( "oBMode", "direct" ).equals( "direct" ); }
-
-	Preferences p = null;
+	// these values are defined in resources.
+	static public final String      previewMode = "preview";
+	static public final boolean initPreviewMode = false;
+	static public final String       visualMode = "visual";
+	static public final boolean  initVisualMode = true;
+	static public final String          verbose = "verbose";
+	static public final boolean     initVerbose = true;
 	
+	// behaviour - other values from Engine
+	static private      boolean     firstRun = true;
+	// widgets
+	       private ImageButton        cancel = null;
+	       private ImageButton      okButton = null;
+	       //private ImageButton       cycle = null; // skip forward -- not yet used
+	       private EditText         editText = null;
+	       private ImageButton      speakNow = null;
+	
+	static public boolean verboseMode() { return Preferences.getPreferences().get( verbose, initVerbose ); }
+	static public boolean previewMode() { return visualMode() && Preferences.getPreferences().get( previewMode, initPreviewMode ); }
+	static public boolean  visualMode() { return Preferences.getPreferences().get( visualMode, initVisualMode ); }
+	private void initHelp( boolean spoken ) {
+		if (spoken)
+			Repertoire.help( this.getString( R.string.help0 ) + " , " +
+				(visualMode() ?
+					this.getString( R.string.help1 )  + " , " + (previewMode()?this.getString( R.string.help2 ):"")
+				:	this.getString( R.string.help3 )  ));
+		else
+			Repertoire.help( this.getString( R.string.toSpeak0 ) + " , " +
+				(visualMode() ?
+					this.getString( R.string.toSpeak1 )  + " , " + (previewMode()?this.getString( R.string.toSpeak2 ):"")
+				:	this.getString( R.string.toSpeak3 )) + " " + this.getString( R.string.helpHint ));
+	}
+	public String helpPrompt() {
+		return !Engine.helpRun() ?
+				Repertoire.help() /* just say help */
+				: Enguage.e.signs.helpToString(); // what you can say
+	}
+
 	public TextToSpeech tts = null;
 	private boolean ttsInitialised = false;
 	private boolean vocalised() {
 		AudioManager am = (AudioManager)this.getSystemService( Activity.AUDIO_SERVICE );
 		return ttsInitialised && AudioManager.RINGER_MODE_NORMAL == am.getRingerMode();
 	}
-	public void onInit(int code) {if (TextToSpeech.SUCCESS == code) ttsInitialised = true; }
 
-	// widgets
-	private ImageButton        cancel = null;
-	private ImageButton      okButton = null;
-	//private ImageButton       cycle = null; // skip forward -- not yet used
-	private EditText         editText = null;
-	private ImageButton      speakNow = null;
-	
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
@@ -61,9 +101,9 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 
 		// tell the sofa what preferences to use
 		Preferences.setPreferences( new Preferences( PreferenceManager.getDefaultSharedPreferences( this )) );
-		setTitle( Enguage.lastLoaded().equals( Enguage.defaultRepertoire ) ?
-				Enguage.defaultRepertoire :
-				Enguage.name +": "+ Enguage.lastLoaded()
+		setTitle( Repertoire.lastLoaded().equals( Repertoire.def() ) ?
+				Repertoire.def() :
+				Enguage.name +": "+ Repertoire.lastLoaded()
 		);
 		
 		/* Text to speech initialisation */
@@ -72,10 +112,9 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		startActivityForResult( checkIntent, REQUEST_LANGUAGE );
 		/* Text to speech initialisation */
 		
-		p = new Preferences( PreferenceManager.getDefaultSharedPreferences( this ));
-		Preferences.setPreferences( p );
+		//p = new Preferences( PreferenceManager.getDefaultSharedPreferences( this ));
+		//Preferences.setPreferences( p );
 	}
-
     @Override
 	protected void onDestroy() {
 		if (null != tts) {
@@ -84,15 +123,16 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		}
 		super.onDestroy();
 	}
-	@Override public void onPause() { super.onPause(); }
+	@Override
+	public void onPause() { super.onPause(); }
 	@Override
 	public void onResume() {
 		super.onResume();
 		
 		// TODO: make o an Overlay static?
-		if (null == Enguage.o || !Enguage.o.attached() || null == Enguage.interpreter ) {
-			Enguage.interpreter = new Enguage( this );
-			Enguage.interpreter.loadConfig();
+		if (null == Enguage.o || !Enguage.o.attached() || null == Enguage.e ) {
+			Enguage.e = new Enguage( this );
+			Enguage.e.loadConfig( Enguage.configFilename );
 		}
 		drawScreen();
 	}
@@ -100,7 +140,6 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate( R.menu.main, menu );
-		//return true;
 		return super.onCreateOptionsMenu( menu );
 	}
 	@Override
@@ -139,7 +178,7 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 			if (resultCode == RESULT_OK && null != data) {
 				newTextArr = data.getStringArrayListExtra( RecognizerIntent.EXTRA_RESULTS );
 				newTextIdx = 0;
-				if (oneButtonMode()) {
+				if (!previewMode()) {
 					interpret( newTextArr.get( newTextIdx ));
 				} else {
 					// all this bother is to get new text inserted at 
@@ -159,25 +198,39 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 					editText.setText( header + newTextArr.get( newTextIdx ) + tailer );
 					editText.setSelection( header.length() + newTextArr.get( newTextIdx ).length() );
 	}	}	}	}
+	public void onInit(int code) {
+		initHelp( false );
+		if (TextToSpeech.SUCCESS == code) ttsInitialised = true;
+		// initiate the welcome message...
+		if (firstRun || !visualMode()) {
+			firstRun = false;
+			tts.speak( this.getString( R.string.welcome ), TextToSpeech.QUEUE_ADD, null );
+		}
+		if (verboseMode())
+			tts.speak( helpPrompt(), TextToSpeech.QUEUE_ADD, null );
+	}
+
 	public void interpret( String message ) {
 		if (!message.equals("")) {
 			
-			message = Enguage.interpreter.interpret(
-							Language.addTerminator( Strings.fromString( message ))
+			message = Enguage.e.interpret(
+							Shell.addTerminator( new Strings( message ))
 					  );
 
 			// Scrub user input if understood and if preview mode
-			if (editText != null && Enguage.interpreter.lastReplyWasUnderstood())
-				editText.setText( "" );	
+			if (editText != null && Enguage.e.lastReplyWasUnderstood())
+				editText.setText( "" );
 			
 			if (vocalised()) { // Say it
 				tts.speak( message, TextToSpeech.QUEUE_ADD, null );
-				if (p.get( SplashActivity.hosPref, SplashActivity.initHosPref ) && // we're showing help, and...
-					!Enguage.interpreter.lastReplyWasUnderstood()) // ...we need help
-					tts.speak( "to get help, just say help.", TextToSpeech.QUEUE_ADD, null );
-			}
+				/// this needs to be put into engine!!!
+				if (verboseMode() && // we're showing help, and...
+					!Enguage.e.lastReplyWasUnderstood() // ...we need help
+				){	initHelp( true );
+					tts.speak( helpPrompt(), TextToSpeech.QUEUE_ADD, null );
+			}	}
 
-			// now set up screen -- may have changed???
+			// screen may have changed due to commands issued...
 			drawScreen();
 			
 			/* TODO:
@@ -201,11 +254,21 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		ll = (LinearLayout)findViewById( R.id.llayout );
 		ll.removeAllViews();
 		
-		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+		LinearLayout.LayoutParams params;
+		if (!visualMode() || (!previewMode() && !Repertoire.defaultRepIsLoaded())) {
+			// one button in centre of screen
+			params = new LinearLayout.LayoutParams( 150, 150, 1 );
+			params.setMargins(50,100,50,100);
+			params.gravity = Gravity.CENTER;
+		} else {
+			// button(s) at top of screen
+			params = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT, //-- req API 8 */
 	            LinearLayout.LayoutParams.WRAP_CONTENT,
 	            1 ); // 1 is the weight -- will fill row with 1 or 3 buttons
+		}
 		
+
 		// now rebuild screen
 		// speak now buttons needed in both operating modes
 		speakNow = new ImageButton( this );
@@ -213,12 +276,17 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		speakNow.setOnClickListener( new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent( RecognizerIntent.ACTION_RECOGNIZE_SPEECH );
+				// pray silence...
+				tts.speak( "", TextToSpeech.QUEUE_FLUSH, null );
+				// start speak now dialogue...
 				// TODO: localise this! Add this to settings
+				Intent intent = new Intent( RecognizerIntent.ACTION_RECOGNIZE_SPEECH );
 				intent.putExtra( RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-GB" );
 				try {
 					startActivityForResult( intent, REQUEST_SPEECH );
 				} catch (ActivityNotFoundException a) {
+					// force the device into preview mode...
+					Preferences.getPreferences().set( previewMode, true );
 					Toast.makeText(
 						getApplicationContext(),
 						"Sorry, your device doesn't support speech-to-text",
@@ -227,7 +295,7 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 		}	}	});
 		ll.addView( speakNow, params );
 		
-		if (!oneButtonMode()) {
+		if (previewMode()) {
 			cancel = new ImageButton( this );
 			cancel.setImageResource( android.R.drawable.ic_delete );
 			cancel.setOnClickListener(new View.OnClickListener() {
@@ -263,35 +331,41 @@ public class MainActivity extends ActionBarActivity implements TextToSpeech.OnIn
 			editText.setText( editTextContent ); // put it back
 			editText.setTextSize( DeviceText.getSize() ); // size it
 			ll.addView( editText, 1 ); // 1 => 2nd line
-		}	
+		}
 		
-		if (Enguage.interpreter.defaultRepIsLoaded())
+		if (Repertoire.defaultRepIsLoaded())
 			populateList();
 	}
 	private void populateList() {
-		Audit.suspend(); // nothing worth logging here, move along!
+		String text = "list text to go here";
 		
-		// subject is set in need.txt 
+		/*
+		 * Enguage code...
+		 */
+		boolean wasOn = false;
+		if (Audit.isOn()) { // nothing worth logging here, move along!
+			wasOn = true;
+			Audit.turnOff();
+		}
+		
+		Item.format( "QUANTITY,UNIT of,,from FROM" );
+		
+		// subject variable is set in iNeed.txt 
 		String subject = Variable.get( "subject", "_user" );
 		
-		String[] cmds = { List.NAME, "get", subject, "needs" };
-		String   text = new Sofa( null ).interpret( cmds );
-		if (text == null) text = "";
-		String firstLine = subject.equals( "_user" ) ?
-				(text.equals("") ?	" do not need anything." : " need:") :
-				(text.equals("") ?	" does not need anything." : " needs:" );
-		String[] list = Strings.fromString(
-			subject	+ firstLine	+ List.sep() + text,
-			List.sep()
-		);
+		Strings lines = new List( subject, "needs" ).get();
+		lines.add( 0, subject + (lines.size() == 0 ? " does not need anything." : " needs:") );
+		lines = Colloquial.applyOutgoingColloquia( lines ); // "_user does not..." => "You do not..."
+		lines.set( 0, Language.capitalise( lines.get( 0 )));
+		text = lines.toString( Strings.LINES );
 		
-		list = Reply.applyOutgoingColloquials( list );
-		list[ 0 ] = Language.capitalise( list[ 0 ]);
-			
-		String content = Strings.toString( list, Strings.LINES );
+		if (wasOn) Audit.turnOn();
+		/*
+		 * 
+		 */
+		
 		TextView tv = ((TextView)findViewById( R.id.mainText ));
-		tv.setText( content );
+		tv.setText( text );
 		tv.setTextSize( DeviceText.getSize() ); // was 24 -- a comfortable size on phone
 		
-		Audit.resume();
 }	}

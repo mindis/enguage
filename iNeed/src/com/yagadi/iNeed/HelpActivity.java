@@ -1,6 +1,15 @@
+/*
+ * iNeed - HelpActivity.
+ * 
+ * This code is released under the Lesser GPL
+ * - do with it what you will, just keep the below
+ *   copyright for the swathes of code you leave in!
+ * 
+ * (c) yagadi ltd, 2013-4.
+ */
 package com.yagadi.iNeed;
 
-import com.yagadi.enguage.Enguage;
+import com.yagadi.enguage.concept.Repertoire;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -16,7 +25,7 @@ public class HelpActivity extends Activity {
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.help_layout );
-		setTitle( Enguage.lastLoaded() +": Help");
+		setTitle( Repertoire.lastLoaded() +": Help");
 		
 		//refillHelpScrollArea();
 		helpScrollArea = (ScrollView)findViewById( R.id.helpScrollView );
