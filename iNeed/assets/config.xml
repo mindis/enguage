@@ -4,6 +4,7 @@
 			SUCCESS="ok"
 			FAILURE="sorry"
 			IK="I know"
+			TTL="5"
 			TERMS=". ? !"
 			VALUESEP="+"
 			REPEATFORMAT="I said, ... ."
@@ -14,15 +15,13 @@
 			ORLISTFORMAT=", :, or " >
 			
 		<concepts>
-			<concept id="complexityTest" op="ignore"/>
-			<concept id="engine"         op="load"/>
 			<concept id="colloquia"      op="load"/>
+			<concept id="engine"         op="load"/>
 			<concept id="plural"         op="load"/>
 			<concept id="settings"       op="load"/>
 			<concept id="arithmetic"     op="load"/>
-			<concept id="ambiguous"      op="load"/>
 			<concept id="memrica"        op="ignore"/>
-			<concept id="need"           op="default" />
+			<concept id="need"           op="prime"/>
 		</concepts>
 	</config>
 </xml>

@@ -10,6 +10,7 @@ import java.util.Locale;
 import android.app.Activity;
 import android.content.res.AssetManager;
 
+import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Plural;
 import com.yagadi.enguage.sofa.Attribute;
 import com.yagadi.enguage.sofa.Attributes;
@@ -19,7 +20,7 @@ import com.yagadi.enguage.util.Strings;
 
 public class Tag {
 	private static Audit audit = new Audit( "Tag" );
-	private static boolean debug = false;
+	private static boolean debug = Enguage.runtimeDebugging;
 	
 	public static final int NULL   = 0;
 	public static final int ATOMIC = 1;
@@ -56,9 +57,9 @@ public class Tag {
 
 	public Strings prefixAsStrings = new Strings();
 	public Strings prefixAsStrings() { return prefixAsStrings; }
-	public String prefix = emptyPrefix;
-	public String prefix(  ) { return prefix; }
-	public Tag    prefix( String str ) {
+	public String  prefix = emptyPrefix;
+	public String  prefix(  ) { return prefix; }
+	public Tag     prefix( String str ) {
 		// set this shortcut..
 		prefixAsStrings = new Strings( str );
 		
@@ -75,9 +76,9 @@ public class Tag {
 
 	public Strings postfixAsStrings;
 	public Strings postfixAsStrings() { return new Strings( postfix ); }
-	public String postfix = "";
-	public String postfix(  ) { return postfix; }
-	public Tag    postfix( String str ) { postfix = str; return this; }
+	public String  postfix = "";
+	public String  postfix(  ) { return postfix; }
+	public Tag     postfix( String str ) { postfix = str; return this; }
 
 	private String name = "";
 	public  String name() { return name; }
@@ -175,14 +176,17 @@ public class Tag {
 		if (debug) audit.traceOut();
 	}
 	public int remove( Tag pattern ) {
+		if (debug) audit.traceIn( "remove", pattern.toString());
 		int rc = 0;
 		Iterator<Tag> i = content().iterator();
 		while (i.hasNext()) {
 			Tag t = i.next();
+			if (debug) audit.debug( "checking against: "+ t.toString() );
 			if (t.equals( pattern )) {
 				i.remove();
 				rc++;
 		}	}
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 	public int removeMatches( Tag pattern ) {
@@ -364,6 +368,11 @@ public class Tag {
 			( name.toUpperCase( Locale.getDefault() ) +" "+  // attributes has preceding space
 			(0 == content().size() ? "" : content.toText() )))
 			+ postfix ;
+	}
+	public String toLine() {
+		return prefix + 			 
+				(0 == content().size() ? "" : content.toText() )
+				+ postfix ;
 	}
 	
 	public static Tag fromFile( String fname ) {

@@ -15,6 +15,7 @@ class ValuesTest extends Shell {
 public class Value {
 	static private Audit audit = new Audit( "Value" );
 	public static final String NAME = "value";
+	private static boolean debug = false; // Enguage.runtimeDebugging;
 	
 	protected String ent, attr;
 
@@ -25,7 +26,9 @@ public class Value {
 	}
 
 	// statics
-	static public String name( String entity, String attr, String rw ) { return Overlay.fsname( entity +"/"+ attr, rw ); }
+	static public String name( String entity, String attr, String rw ) {
+		return Overlay.fsname( entity +(attr==null?"":"/"+ attr), rw );
+	}
 	
 	// members
 	// TODO: cache items[]? Lock file - this code is not suitable for IPC? Exists in constructor?
@@ -47,10 +50,10 @@ public class Value {
 			if ( Filesystem.exists( writeName )) { // rename
 				File oldFile = new File( writeName ),
 				     newFile = new File( deleteName );
-				audit.debug( "Moving "+ oldFile.toString() +" to "+ deleteName );
+				if (debug) audit.debug( "Value.ignore(): Moving "+ oldFile.toString() +" to "+ deleteName );
 				oldFile.renameTo( newFile );
 			} else { // create
-				audit.debug( "creating marker file "+ deleteName );
+				if (debug) audit.debug( "Value.ignore(): Creating marker file "+ deleteName );
 				Filesystem.stringToFile( deleteName, marker );
 	}	}	}
 	public void restore() {
@@ -59,11 +62,11 @@ public class Value {
 		File deletedFile = new File( deletedName );
 		String content = Filesystem.stringFromFile( deletedName );
 		if (content.equals( marker )) {
-			audit.debug( "deleting marker file "+ deletedFile.toString());
+			if (debug) audit.debug( "Value.restore(): Deleting marker file "+ deletedFile.toString());
 			deletedFile.delete();
 		} else {
 		    File restoredFile = new File( writeName );
-			audit.debug( "Moving "+ deletedFile.toString() +" to "+ restoredFile.toString());
+		    if (debug) audit.debug( "Value.restore(): Moving "+ deletedFile.toString() +" to "+ restoredFile.toString());
 			deletedFile.renameTo( restoredFile );
 	}	}
 	

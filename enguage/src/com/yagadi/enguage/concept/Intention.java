@@ -5,47 +5,47 @@ import com.yagadi.enguage.expression.Colloquial;
 import com.yagadi.enguage.expression.Reply;
 import com.yagadi.enguage.sofa.Attribute;
 import com.yagadi.enguage.sofa.Sofa;
-import com.yagadi.enguage.sofa.Variable;
 import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 public class Intention extends Attribute {
 	private static Audit audit = new Audit( "Intention" );
-	private static boolean debug = Enguage.runtimeDebugging;
+	private static boolean debug = Enguage.runtimeDebugging || Enguage.startupDebugging;
 
-	public static final String      REPLY   = "reply";
-	public static final String ELSE_REPLY   = "elseReply";
-	public static final String      THINK   = "think";
-	public static final String ELSE_THINK   = "elseThink";
-	public static final String      PERFORM = "perform";
-	public static final String ELSE_PERFORM = "elsePerform";
-	public static final String FINALLY      = "finally";
+	public static final String      REPLY = "r";
+	public static final String ELSE_REPLY = "R";
+	public static final String      THINK = "t";
+	public static final String ELSE_THINK = "T";
+	public static final String      DO    = "d";
+	public static final String ELSE_DO    = "D";
+	//public static final String      DO      = "d";
+	//public static final String ELSE_DO      = "D";
+	//public static final String      PERFORM_DO   = "do";
+	//public static final String ELSE_PERFORM_DO   = "elseDo";
+	public static final String FINALLY    = "f";
 	
 	public Intention( String name, String value ) { super( name, value ); }	
 	
 	// processes: think="... is a thought".
-	private Reply think( String answer ) {
-		if (debug) audit.traceIn( "think", "value='"+ value +"', previous='"+ answer +"', ctx =>"+ Reply.context().toString( " " ));
-			
+	private Reply think( Reply r /*String answer*/ ) {
+		if (debug) audit.traceIn( "think", "value='"+ value +"', previous='"+ r.answer() +"', ctx =>"+ Reply.context().toString( " " ));
+		
 		// pre-process value to get an utterance...
 		// we don't know the state of the intentional value
 		Strings u =
-			Colloquial.user().internalise( // I am => _user is
-				Colloquial.symmetric().internalise( // I'm => I am
-					Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
-						Reply.context().deref( // X => "coffee", singular-x="80s" -> "80"
-							new Strings( value ).replace( // replace "..." with answer
-									Strings.ellipsis,
-									new Strings( answer )),
-							false // don't expand, UNIT => cup NOT unit='cup'
-			)	)	)	);
-
-		if (debug) audit.debug( "Thinking: "+ u.toString( Strings.CSV ));
-		Reply r = Repertoire.innerterpret( u );
+			//Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
+				Reply.context().deref( // X => "coffee", singular-x="80s" -> "80"
+					new Strings( value ).replace( // replace "..." with answer
+							Strings.ellipsis,
+							new Strings( r.answer() )), // was answer
+					false // don't expand, UNIT => cup NOT unit='cup'
+			);//	);
 		
+		if (debug) audit.debug( "Thinking: "+ u.toString( Strings.CSV ));
+		/*Reply*/ r = Repertoires.interpret( u );
+		// pass out was done value was!
 		r.doneIs( false );
-		// TODO: should be toasted?
 
 		Reply.strangeThought(""); // ??? will this clear it on subsequent thoughts?
 		if ( Reply.DNU == r.getType()) {
@@ -61,6 +61,7 @@ public class Intention extends Attribute {
 				audit.ERROR( "Following ERROR: maybe just run out of meanings?" );
 				Reply.strangeThought("");
 			}
+			r.doneIs( true );
 		
 		} else if ( Reply.NO == r.getType() && r.answer().equalsIgnoreCase( Reply.ik()))
 			r.answer( Reply.yes());
@@ -72,15 +73,15 @@ public class Intention extends Attribute {
 		if (debug) audit.traceIn(  "conceputalise", "value='"+ value +"', ["+ Reply.context().toString( " " ) +"]" );
 		// SofA CLI in C returned 0, 1, or "xxx" - translate these values into Reply values
 		Strings cmd = // Don't Strings.normalise() coz sofa requires "1" parameter
-				Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
+				//Variable.deref( // $BEVERAGE + _BEVERAGE -> ../coffee => coffee
 					Reply.context().deref(
 							new Strings( value ).replace( // replace "..." with answer
 								Strings.ellipsis,
 								new Strings( answer )),
 							true // DO expand, UNIT => unit='non-null value'
-				)	);
+				); //	);
 		
-		//audit.debug(  "conceptualising: "+ cmd.toString( Strings.CSV ));
+		if (debug) audit.debug(  "conceptualising: "+ cmd.toString( Strings.CSV ));
 		String rc = new Sofa( null ).interpret( cmd );
 		//audit.debug(  "raw answer is: '"+ rc +"'" );
 		if (cmd.get( 1 ).equals( "get" ) && (null == rc || rc.equals( "" ))) {
@@ -104,14 +105,11 @@ public class Intention extends Attribute {
 		Reply.context().delistify();
 		// now Y="beer and crisps" -- ?"fuller/beer+crisps"?
 		r.format(
-			Variable.deref(
-				Reply.context().deref(
-					value // ?replaced with...
-					/*new Strings( value ).replace( // replace "..." with answer
-					 *	Strings.ellipsis,
-					 *	new Strings( r.answer()))
-					 */
-			)	)
+				Colloquial.applyOutgoing(
+						Reply.context().deref(
+								/*Variable.deref(*/ new Strings( value ) /*)*/
+						)
+				)
 		)
 		.doneIs( true );
 		if (debug) audit.traceOut( r.toString() +"::"+ r.format().toString() + "-- we're now DONE!" );
@@ -119,40 +117,34 @@ public class Intention extends Attribute {
 	}
 	
 	public Reply mediate( Reply r ) {
-		if (debug) if (!name.equals("id") && !name.equals("help"))
-			audit.traceIn( "mediate", name +"='"+ value +"', r='"+ r.asString() +"', ctx =>"+ Reply.context().toString( " " ));
+		if (debug) audit.traceIn( "mediate", name +"='"+ value +"', r='"+ r.asString() +"', ctx =>"+ Reply.context().toString( " " ));
 		
-		if (name.equals( "finally" ))
-			conceptualise( r.answer()); // ignore result of finally
+		if (r.isDone()) { 
+			audit.debug( "skipping "+ name() +": reply already found" );
+		
+		} else if (name.equals( "finally" )) {
+			conceptualise( r.answer() ); // ignore result of finally
 
-		else if (name.equals( "id" ))
-			; // ignore id
-
-		else if (name.equals( "help" ))
-			; // ignore help
-
-		else if (!r.isDone())	{
+		} else {
 			
 			if (r.negative()) {
 				if (name.equals( ELSE_THINK ))
-					r = think( r.answer() );
-				else if (name.equals( ELSE_PERFORM ))
-					r.answer( conceptualise( r.answer()));
+					r = think( r /*.answer()*/ );
+				else if (name.equals( ELSE_DO ))
+					r.answer( conceptualise( r.answer() ));
 				else if (name.equals( ELSE_REPLY ))
 					r = reply( r );
  					
 			} else { // train of thought is positive
 				if (name.equals( THINK ))
-					r = think( r.answer() );
-				else if (name.equals( PERFORM ))
-					r.answer( conceptualise( r.answer()));
+					r = think( r /*.answer()*/ );
+				else if (name.equals( DO ))
+					r.answer( conceptualise( r.answer() ));
 				else if (name.equals( REPLY )) // if Reply.NO -- deal with -ve replies!
 					r = reply( r );
-			}
-		}// else
-		//	audit.debug( "skipping "+ NAME +": reply already found" );
-		if (debug) if (!name.equals("id") && !name.equals("help"))
-			audit.traceOut( "r='"+ r.toString() +"' ("+ r.asString() +")");
+		}	}
+		
+		if (debug) audit.traceOut( "r='"+ r.toString() +"' ("+ r.asString() +")");
 		return r;
 	}
 	public static void main( String argv[]) {

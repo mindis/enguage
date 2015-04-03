@@ -1,5 +1,6 @@
 package com.yagadi.enguage.expression;
 
+import java.util.ListIterator;
 import java.util.Locale;
 
 import com.yagadi.enguage.concept.Repertoire;
@@ -8,18 +9,18 @@ import com.yagadi.enguage.util.Strings;
 
 
 public class Language {  // English-ism!
+	
+	//static private Audit audit = new Audit( "Language" );
+
 	static public final Strings headers = new Strings( "( { [" );
 	static public final Strings tailers = new Strings( ") } ]" );
 	
 	static public boolean isQuoted(String a) { // universal?
-		boolean rc = false;
-		if (null!=a) {
-			int len = a.length();
-			if (len>1)
-				rc = ((a.charAt( 0 ) ==  '"') && (a.charAt( len-1 ) ==  '"'))
-				  || ((a.charAt( 0 ) == '\'') && (a.charAt( len-1 ) == '\''));
-		}
-		return rc;
+		int len;
+		return (null != a) &&
+			   ((len = a.length())>1) &&
+			   (   ((a.charAt( 0 ) ==  '"') && (a.charAt( len-1 ) ==  '"'))
+			    || ((a.charAt( 0 ) == '\'') && (a.charAt( len-1 ) == '\'')) );
 	}
 	static public boolean isQuote(String a) { // universal?
 		return (null!=a) && (a.equals('\'') || a.equals('"'));
@@ -42,16 +43,19 @@ public class Language {  // English-ism!
 		return a.length()>0 ? a.toUpperCase(Locale.getDefault()).charAt(0) + a.substring( 1 ) : "";
 	}
 	static Strings sentenceCapitalisation( Strings a ) {
-		if (a != null && a.size() > 0 && a.get( 0 ).length()>0)
+		if (a != null && a.size() > 0)
 			a.set( 0, capitalise( a.get( 0 ))); // ... if so, start with capital
 		return a;
 	}
 	static Strings pronunciation( Strings a ) {
-		if (a != null) for(int i=0; i< a.size(); i++)
-			if (a.get(i).equals( Repertoire.NAME ))
-				a.set( i, Repertoire.PRONUNCIATION );
-			else if (a.get(i).equals( Plural.plural( Repertoire.NAME )))
-				a.set( i, Repertoire.PLURALISATION );
+		if (a != null) {
+			for(ListIterator<String> ai = a.listIterator(); ai.hasNext();) {
+				String s = ai.next();
+				if (s.equals( Repertoire.NAME ))
+					ai.set( Repertoire.PRONUNCIATION );
+				else if (s.equals( Plural.plural( Repertoire.NAME )))
+					ai.set( Repertoire.PLURALISATION );
+		}	}
 		return a;
 	}
 	// replace [ x, "'", "y" ] with "x'y" -- or /dont/ or /martins/ if vocalised
@@ -75,6 +79,22 @@ public class Language {  // English-ism!
 		return  ('a' == ch) || ('e' == ch) || ('i' == ch) || ('o' == ch) || ('u' == ch)  
 		     || ('A' == ch) || ('E' == ch) || ('I' == ch) || ('O' == ch) || ('U' == ch); 
 	}
+	/*static public Strings indefiniteArticleVowelSwap( Strings ans ) {
+		ListIterator<String> ai = ans.listIterator();
+		while (ai.hasNext()) {
+			String articleCandidate = ai.next();
+			if (ai.hasNext() &&
+				(   articleCandidate.equalsIgnoreCase(  "a" )      // ... a  QUANTITY ...
+				 || articleCandidate.equalsIgnoreCase( "an" ))) {  // ... an ENGINEER ...
+				// look forward to next word...
+				String nextWord = new String( ai.next());
+				String tmp = new String( ai.previous()); // go back to article
+				audit.audit( "art next: "+ tmp +" "+ nextWord );
+				ai.set( isVowel( nextWord.charAt( 0 )) ? "an" : "a" );
+		}	}
+		return ans;
+	}*/
+
 	static public Strings indefiniteArticleVowelSwap( Strings ans ) {
 		for (int i=0, sz=ans.size(); i<sz-1; ++i)
 			if (   ans.get( i ).equalsIgnoreCase(  "a" )
@@ -82,12 +102,12 @@ public class Language {  // English-ism!
 				ans.set( i, isVowel( ans.get( 1+i ).charAt( 0 )) ? "an" : "a" );
 		return ans;
 	}
-	static public Strings indefiniteArticleFlatten( Strings a ) {
+/*	static private Strings indefiniteArticleFlatten( Strings a ) {
 		for (int i=0; i<a.size(); i++)
 			if (a.get( i ).equalsIgnoreCase( "an" ))
 				a.set( i, "a" );
 		return a;	
-	}
+	}*/
 	static public boolean wordsEqualIgnoreCase( String a, String b ) {
 		if ((a.equalsIgnoreCase( "an" ) || a.equalsIgnoreCase( "a" )) &&
 		    (b.equalsIgnoreCase( "an" ) || b.equalsIgnoreCase( "a" ))    ) return true;

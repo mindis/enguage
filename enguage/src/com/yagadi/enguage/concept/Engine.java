@@ -4,6 +4,7 @@ import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Reply;
 import com.yagadi.enguage.sofa.Variable;
 import com.yagadi.enguage.util.Audit;
+import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 /*
@@ -13,8 +14,10 @@ import com.yagadi.enguage.util.Strings;
 public class Engine extends Intention {
 	private static Audit audit = new Audit( "Engine" );
 
-	public static final String NAME = "engine";
-	public static final String HELP = "help";
+	public  static final String NAME = "engine";
+	public  static final String HELP = "help";
+	private static final String DISAMBIGUATE = "disamb";
+	
 	public static final Sign commands[] = {
 		// because these are raw signs, they MUST be terminated by full stops.
 		new Sign().content( new Tag(  "describe ", "x" )).attribute( "id", NAME   )
@@ -34,12 +37,12 @@ public class Engine extends Intention {
 		new Sign().content( new Tag( "reload ", "NAME" )).attribute( NAME, "reload NAME" ),
 		//new Sign().attribute( NAME, "save"    ).content( new Tag( "save", "", "" ) ),
 		//new Sign().attribute( NAME, "saveas $NAME" ).content( new Tag("saveas ", "NAME", ".")),
-		new Sign().content( new Tag(    "enable undo", "" )).attribute( NAME, "undo enable"  ),
-		new Sign().content( new Tag(   "disable undo", "" )).attribute( NAME, "undo disable" ),
-		new Sign().content( new Tag(           "undo", "" )).attribute( NAME, "undo"         ),
-		new Sign().content( new Tag(      "say again", "" )).attribute( NAME, "repeat"       ),
-		new Sign().content( new Tag(     "debug ", "x" )).attribute( NAME, "debug X"      ),
-		new Sign().content( new Tag(     "spell ", "x" )).attribute( NAME, "spell X"      ),
+		new Sign().content( new Tag(    "enable undo",  "" )).attribute( NAME, "undo enable"  ),
+		new Sign().content( new Tag(   "disable undo",  "" )).attribute( NAME, "undo disable" ),
+		new Sign().content( new Tag(           "undo",  "" )).attribute( NAME, "undo"         ),
+		new Sign().content( new Tag(      "say again",  "" )).attribute( NAME, "repeat"       ),
+		new Sign().content( new Tag(         "debug ", "x" )).attribute( NAME, "debug X"      ),
+		new Sign().content( new Tag(         "spell ", "x" )).attribute( NAME, "spell X"      ),
 		/* 
 		 * it is possible to arrive at the following construct:   think="reply 'I know'"
 		 * e.g. "if X, Y", if the instance is "if already exists, reply 'I know'"
@@ -48,19 +51,23 @@ public class Engine extends Intention {
 		 * However, the following should deal with this situation.
 		 */
 		new Sign().content( new Tag( REPLY+" ", "x" ).attribute( Tag.quoted, Tag.quoted ))
-				.attribute( REPLY, "X" ),
+					.attribute( REPLY, "X" ),
+		
+		// fix to allow better reading of autopoietic  
+		new Sign().content( new Tag( "if so, ", "x" ).attribute( Tag.phrase, Tag.phrase ))
+					.attribute( THINK, "X" ),
 		/* 
 		 * REDO: undo and do again, or disambiguate
 		 */
-		new Sign().content( new Tag( "No ", "x" ).attribute( "phrase", "phrase" ))
+		new Sign().content( new Tag( "No ", "x" ).attribute( Tag.phrase, Tag.phrase ))
 					.attribute( NAME, "undo" )
-					.attribute( "elseReply", "undo is not available" )
+					.attribute( ELSE_REPLY, "undo is not available" )
 					/* On thinking the below, if X is the same as what was said before,
 					 * need to search for the appropriate sign from where we left off
 					 * Dealing with ambiguity: "X", "No, /X/"
 					 */
-					.attribute(  NAME,  "disamb X" ) // this will set up how the inner thought, below, works
-					.attribute( "think",  "X"    )
+					.attribute( NAME,  DISAMBIGUATE +" X" ) // this will set up how the inner thought, below, works
+					.attribute( THINK,  "X"    )
 	 };
 	
 	// are we taking the hit of creating / deleting overlays
@@ -79,14 +86,29 @@ public class Engine extends Intention {
 		return r.format( Reply.dnu() );
 	}
 	
+	// are we taking the hit of creating / deleting overlays
+	static private boolean undoEnabled = false;
+	static public  boolean undoIsEnabled() { return undoEnabled; }
+	static public  void    undoEnabledIs( boolean enabled ) { undoEnabled = enabled; }
+	
 	// determines the behaviour of the app over prompting for help...
 	static private boolean helpRun = false;
 	static public  void    helpRun( boolean run ) { helpRun = run; }
 	static public  boolean helpRun() { return helpRun; }
+	
 	// record whether the user has figured it out...
 	// run in conjunction with the main intepreter and the app...
-	static private boolean spoken = false;
-	static public  void    spoken( boolean run ) { spoken = run; }
+	static private final String spokenVar = "SPOKEN";
+	static private boolean         spoken = Variable.get( spokenVar ).equals( Shell.SUCCESS );
+	static public  void    spoken( boolean spk ) {
+		audit.traceIn( "spoken", spk ? Shell.SUCCESS : Shell.FAIL );
+		if (spk != spoken) {
+			audit.audit( "Engine.spoken(): remembering "+ spk );
+			Variable.set( spokenVar, spk ? Shell.SUCCESS : Shell.FAIL );
+			spoken = spk;
+		}
+		audit.traceOut();
+	}
 	static public  boolean spoken() { return spoken; }
 	//
 	//
@@ -108,9 +130,9 @@ public class Engine extends Intention {
 		    ||	(/* redoIsOn() &&*/	Enguage.lastInput().copyAfter( 0 ).equals( cmd  )  // no X == (redo) X...  -- case 2
 		    				     &&	Enguage.lastInput().get(    0    ).equals( "no" )  // ..&& last[ 0 ] = "no"
 		)	)	{
-			if (Enguage.signs.lastFoundAt() != -1) { // just in case!
-				Enguage.signs.ignore( Enguage.signs.lastFoundAt() );
-				audit.debug("Engine:disambOn():REDOING: Signs to avoid now: "+ Enguage.signs.ignore().toString() );
+			if (Repertoires.signs.lastFoundAt() != -1) { // just in case!
+				Repertoires.signs.ignore( Repertoires.signs.lastFoundAt() );
+				audit.debug("Engine:disambOn():REDOING: Signs to avoid now: "+ Repertoires.signs.ignore().toString() );
 				disambFound( true );
 	}	}	}
 	//static private boolean subsequent = false;
@@ -118,16 +140,16 @@ public class Engine extends Intention {
 	 * AND the list itself! This is called at the end of an utterance
 	 */
 	static public void disambOff() {
-		//audit.traceIn( "disambOff", "avoids="+ Enguage.e.signs.ignore().toString());
+		audit.traceIn( "disambOff", "avoids="+ Repertoires.signs.ignore().toString());
 		if (Engine.disambFound()) { //still adjusting the list!
 			//audit.debug( "Engine:disambOff():COOKED!" );
 			Engine.disambFound( false );
-			Enguage.signs.reorder();
+			Repertoires.signs.reorder();
 		} else {
 			//audit.debug( "Engine:disambOff():RAW, forget ignores: "+ Enguage.e.signs.ignore().toString());
-			Enguage.signs.ignoreNone();
+			Repertoires.signs.ignoreNone();
 		}
-		//audit.traceOut();
+		audit.traceOut();
 	}
 	// redo ----------------------------------------------------
 	//
@@ -138,9 +160,9 @@ public class Engine extends Intention {
 		
 		Strings cmds =
 				Reply.context().deref(
-					Variable.deref(
+					/*Variable.deref(*/
 						new Strings( value )
-					)
+					/*)*/
 				);
 		cmds = cmds.normalise();
 		String cmd = cmds.get( 0 );
@@ -151,40 +173,42 @@ public class Engine extends Intention {
 		audit.debug( "in Engine.mediate, NAME='"+ NAME +"', value='"+ value +"'");
 // */
 		if ( cmd.equals( "undo" )) {
-			r.format( "ok" );
+			r.format( Reply.success() );
 			if (cmds.size() == 2 && cmds.get( 1 ).equals( "enable" )) 
-				Enguage.undoEnabledIs( true );
+				undoEnabledIs( true );
 			else if (cmds.size() == 2 && cmds.get( 1 ).equals( "disable" )) 
-				Enguage.undoEnabledIs( false );
-			else if (cmds.size() == 1 && Enguage.undoIsEnabled()) {
+				undoEnabledIs( false );
+			else if (cmds.size() == 1 && undoIsEnabled()) {
 				if (Enguage.o.count() < 2) { // if there isn't an overlay to be removed
-					audit.debug( "overlay count( "+ Enguage.o.count() +" ) < 2" );
+					audit.debug( "overlay count( "+ Enguage.o.count() +" ) < 2" ); // audit
 					r.answer( Reply.no() );
-				} else
+				} else {
+					audit.debug("ok - restarting transaction");
 					Enguage.o.reStartTxn();
-			} else if (!Enguage.undoIsEnabled())
+				}
+			} else if (!undoIsEnabled())
 				r.format( Reply.dnu() );
 			else
 				r = unknownCommand( r, cmds );
 			
-		} else if (cmd.equals( "disamb" )) {
+		} else if (cmd.equals( DISAMBIGUATE )) {
 			disambOn( cmds.copyAfter( 0 ));
 
 		} else if (cmd.equals( "load" )) {
 			Strings files = cmds.copyAfter( 0 );
 			audit.debug( "loading "+ files.toString( Strings.CSV ));
 			for(int i=0; i<files.size(); i++)
-				Repertoire.load( files.get( i ));
+				Repertoires.loadConcept( files.get( i ));
 			 
 		} else if (cmd.equals( "unload" )) {
 			Strings files = cmds.copyAfter( 0 );
 			for(int i=0; i<files.size(); i++)
-				Repertoire.unload( files.get( i ));
+				Repertoires.unloadConcept( files.get( i ));
 
 		} else if (cmd.equals( "reload" )) {
 			Strings files = cmds.copyAfter( 0 );
-			for(int i=0; i<files.size(); i++) Repertoire.unload( files.get( i ));
-			for(int i=0; i<files.size(); i++) Repertoire.load( files.get( i ));
+			for(int i=0; i<files.size(); i++) Repertoires.unloadConcept( files.get( i ));
+			for(int i=0; i<files.size(); i++) Repertoires.loadConcept( files.get( i ));
 /*
 		} else if (e.get( 0 ).equals( "save" ) || e.get( 0 ).equalsIgnoreCase( "saveAs" )) {
 			if (e.get( 0 ).equalsIgnoreCase( "saveAs" ) && ( e.size() != 2))
@@ -206,15 +230,15 @@ public class Engine extends Intention {
 			if (cmds.size() <= 1) ; // do nothing -- prob won't get here 'cos it won't have matched.
 			else if (cmds.get( 1 ).equals( "on")) {
 				Audit.turnOn();
-				r.format( "ok" );
+				r.format( Reply.success() );
 			} else if (cmds.get( 1 ).equals( "off")) {
 				Audit.turnOff();			
-				r.format( "ok" );
+				r.format( Reply.success() );
 			} else if (cmds.get( 1 ).equals( "show" )) {
 				//Enguage.e.autop.show();
-				Enguage.signs.show();
+				Repertoires.signs.show();
 				//Enguage.e.engin.show();
-				r.format( "ok" );
+				r.format( Reply.success() );
 			} else
 				r = unknownCommand( r, cmds );
 
@@ -231,25 +255,29 @@ public class Engine extends Intention {
 			
 		} else if (   cmd.equals( "help"    )) {
 			helpRun( true );
-			r.format( Enguage.engin.helpToString( NAME ));
+			r.format( Repertoires.engin.helpToString( NAME ));
 
 		} else if (cmd.equals( "hello"   ) ||
 				   cmd.equals( "welcome" )    ) {
-				helpRun( true );
-				if (cmd.equals(  "hello"  )) r.say( new Strings( "hello" ));
-				if (cmd.equals( "welcome" )) r.say( new Strings( "welcome" ));
-				r.format( Repertoire.help());
+			helpRun( true );
+			if (cmd.equals(  "hello"  )) r.say( new Strings( "hello" ));
+			if (cmd.equals( "welcome" )) r.say( new Strings( "welcome" ));
+			r.format( Repertoire.help());
 
 		} else if ( cmd.equals( "list" )) {
 			//Strings reps = Enguage.e.signs.toIdList();
-			r.format( "loaded repertoires include "+ Repertoire.names().toString( Reply.andListFormat() ));
+			/* This becomes less important as the interesting stuff becomes auto loaded 
+			 * Don't want to list all repertoires once the repertoire base begins to grow?
+			 * May want to ask "is there a repertoire for needs" ?
+			 */
+			r.format( "loaded repertoires include "+ new Strings( Repertoires.names()).toString( Reply.andListFormat() ));
 			
 		} else if ( cmd.equals( "describe" ) && cmds.size() >= 2) {
 			String name = cmds.copyAfter( 0 ).toString( Strings.CONCAT );
-			r.format( Enguage.signs.helpToString( name ));
+			r.format( Repertoires.signs.helpToString( name ));
 			
 		} else if ( cmd.equals( "repertoire" )) {
-			r.format( Enguage.signs.helpToString());
+			r.format( Repertoires.signs.helpToString());
 			
 		} else
 			r = unknownCommand( r, cmds );
@@ -260,7 +288,7 @@ public class Engine extends Intention {
 		// NB. This test program needs more work.
 		//Enguage eng = new Enguage( null );
 		Reply r = new Reply();
-		Repertoire.load( "iNeed" );
+		Repertoires.loadConcept( "iNeed" );
 		Engine e = new Engine( "engine", "list" );
 		e.mediate( r );
 }	}

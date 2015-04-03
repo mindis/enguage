@@ -2,11 +2,11 @@ package com.yagadi.enguage.expression;
 
 import java.util.ArrayList;
 
+import com.yagadi.enguage.concept.Autoload;
 import com.yagadi.enguage.sofa.Attribute;
 import com.yagadi.enguage.sofa.Attributes;
 import com.yagadi.enguage.sofa.Numeric;
 import com.yagadi.enguage.sofa.Preferences;
-import com.yagadi.enguage.sofa.Variable;
 import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Filesystem;
 import com.yagadi.enguage.util.Shell;
@@ -104,6 +104,37 @@ public class Reply { // a reply is basically a formatted answer
 		return contexts.get( 0 );
 	}
 
+	private int type = DNU;
+	private int calculateType() {
+		if (answer().equals( "" ) && format.size() == 0) {
+			return DNU;
+		} else if (answer().equals( no ) && format.equals( new Strings( ik ))) {
+			return CHS;
+		} else if (answer().equals( "" ) && format.contain( "..." )) {
+			return NK;
+		} else if (answer().equals( "" ) && !format.contain( "..." )) {
+				 if (format.equals( new Strings(   yes ))) return YES;
+			else if (format.equals( new Strings(success))) return YES;
+			else if (format.equals( new Strings(    no ))) return NO;
+			else if (format.equals( new Strings(failure))) return NO;
+			else if (format.equals( new Strings(    ik ))) return IK;
+			else if (format.equals( new Strings(   dnk ))) return NK;
+			else if (format.equals( new Strings(   dnu ))) return DNU;
+			else return CHS;
+		} else {
+			     if (answer().equalsIgnoreCase(   yes )) return YES;
+			else if (answer().equalsIgnoreCase(success)) return YES;
+			else if (answer().equalsIgnoreCase(    no )) return NO;
+			else if (answer().equalsIgnoreCase(failure)) return NO;
+			else if (answer().equalsIgnoreCase(    ik )) return IK;
+			else if (answer().equalsIgnoreCase(   dnk )) return NK;
+			else if (answer().equalsIgnoreCase(   dnu )) return DNU;
+			else return CHS;
+	}	}
+	public int      getType() { return type; }
+	public boolean positive() {return YES == type || CHS == type; } // != !negative() !!!!!
+	public boolean negative() {return  NO == type ||  NK == type; } // != !positive() !!!!!
+
 	private Answer  answer = new Answer();
 	private String  ansCache = ""; // effectively null!
 	public  String  answer() {
@@ -123,6 +154,7 @@ public class Reply { // a reply is basically a formatted answer
 	public  Reply   format( String s ) { format( new Strings( s )); return this; }
 	public  Reply   format( Strings sa ) {
 		format = sa;
+		if (!format.contain( "..." )) answer( "" );
 		type = calculateType(); // type is dependent on format -- should it be???
 		return this;
 	}
@@ -158,37 +190,6 @@ public class Reply { // a reply is basically a formatted answer
 	public  String  say() { return say.toString( Strings.SPACED ); }
 	public  void    say( Strings sa ) { say.addAll( Shell.addTerminator( sa )); }
 	
-	private int type = DNU;
-	private int calculateType() {
-		if (answer().equals( "" ) && format.size() == 0) {
-			return DNU;
-		} else if (answer().equals( no ) && format.equals( new Strings( ik ))) {
-			return CHS;
-		} else if (answer().equals( "" ) && format.contain( "..." )) {
-			return NK;
-		} else if (answer().equals( "" ) && !format.contain( "..." )) {
-				 if (format.equals( new Strings(   yes ))) return YES;
-			else if (format.equals( new Strings(success))) return NO;
-			else if (format.equals( new Strings(    no ))) return NO;
-			else if (format.equals( new Strings(failure))) return NO;
-			else if (format.equals( new Strings(    ik ))) return IK;
-			else if (format.equals( new Strings(   dnk ))) return NK;
-			else if (format.equals( new Strings(   dnu ))) return DNU;
-			else return CHS;
-		} else {
-			     if (answer().equalsIgnoreCase(   yes )) return YES;
-			else if (answer().equalsIgnoreCase(success)) return YES;
-			else if (answer().equalsIgnoreCase(    no )) return NO;
-			else if (answer().equalsIgnoreCase(failure)) return NO;
-			else if (answer().equalsIgnoreCase(    ik )) return IK;
-			else if (answer().equalsIgnoreCase(   dnk )) return NK;
-			else if (answer().equalsIgnoreCase(   dnu )) return DNU;
-			else return CHS;
-	}	}
-	public int      getType() { return type; }
-	public boolean positive() {return YES == type || CHS == type; } // != !negative() !!!!!
-	public boolean negative() {return  NO == type ||  NK == type; } // != !positive() !!!!!
-
 	// ---
 	public String asString() {
 		String format = format().toString( Strings.SPACED );
@@ -197,19 +198,18 @@ public class Reply { // a reply is basically a formatted answer
 	}
 
 	public  String toString() { // TODO cache this!!
-		//audit.traceIn( "toString", format().toString() );
+		audit.traceIn( "toString", format().toString() );
 		verbatimIs( false );
 		Strings utterance = format();
 		if (0 == utterance.size())
 			utterance = answer.none() ? new Strings( dnu()) : answer.values();
-		
+
 		// ... then post-process:
 		// if not terminated, add first terminator -- see Tag.c::newTagsFromDescription()
 		if (utterance.size() > 0 && !Shell.isTerminator( utterance.get( utterance.size() -1)) &&
 			!((utterance.size() > 1) && Shell.isTerminator( utterance.get( utterance.size() -2)) && Language.isQuote( utterance.get( utterance.size() -1))))
 			utterance.add( Shell.terminators().get( 0 ));
 
-		
 		// ...finally, if required put in answer (verbatim!)
 		if (utterance == null || utterance.size() == 0)
 			if ( answer().equals( "" ))
@@ -227,21 +227,21 @@ public class Reply { // a reply is basically a formatted answer
 		
 		// outbound and general colloquials
 		if (!isVerbatim())
-			utterance = Colloquial.symmetric().externalise(
-					Colloquial.host().externalise( utterance )
-			);
+			utterance = Colloquial.applyOutgoing( utterance );
 			
 		// ...deref any context...
 		utterance = context().deref( utterance );
+		
 		// English-dependent processing...
 		utterance = Language.indefiniteArticleVowelSwap(
 						Language.sentenceCapitalisation( 
 							Language.pronunciation( 
 								Plural.ise( utterance ))));
 		
-		//audit.traceOut( Language.asString( Variable.deref( utterance )));
+		String rc = Language.asString( Numeric.deref( /*Variable.deref(*/ utterance /*)*/));
+		audit.traceOut( rc );
 		// ...deref any envvars...  ...any numerics...
-		return Language.asString( Numeric.deref( Variable.deref( utterance )));
+		return rc;
 	}
 	
 	// -- helpers
@@ -259,6 +259,7 @@ public class Reply { // a reply is basically a formatted answer
 		if (p.name().equals("SUCCESS")) Reply.success( p.value()); else
 		if (p.name().equals("FAILURE")) Reply.failure( p.value()); else
 		if (p.name().equals("TERMS")) Shell.terminators( new Strings( p.value() )); else
+		if (p.name().equals( "TTL" )) Autoload.ttl( p.value()); else
 		if (p.name().equals( "DNU" )) Reply.dnu( p.value()); else
 		if (p.name().equals( "DNK" )) Reply.dnk( p.value()); else
 		if (p.name().equals( "YES" )) Reply.yes( p.value()); else
@@ -282,8 +283,11 @@ public class Reply { // a reply is basically a formatted answer
 		//if (!Language.apostrophesReq()) fmt = Strings.append( fmt, "'" );
 		fmt.add( "..." );
 		//if (!Language.apostrophesReq()) fmt = Strings.append( fmt, "'" );
+		/*
+		 * take this out for the moment... ...needs more thought 
 		if (!strangeThought.equals( "" ))
 			fmt.add( " when thinking about "+ strangeThought());
+		 */
 		
 		format( fmt );
 		answer( utterance.toString( Strings.SPACED ));

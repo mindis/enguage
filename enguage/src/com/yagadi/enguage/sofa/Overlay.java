@@ -27,6 +27,7 @@ class OverlaySpace {
 }
 class Series { // relates to hypothetical attachment of series of overlays to fs 
 	static private Audit audit = new Audit( "Series" );
+	private static boolean debug = false ; //Enguage.runtimeDebugging || Enguage.startupDebugging;
 
 	static public  final String DETACHED="";
 	static private final String basePointer = File.separator + "reuse";
@@ -109,7 +110,7 @@ class Series { // relates to hypothetical attachment of series of overlays to fs
 		//audit.traceOut();
 	}
 	static public boolean compact( /* int targetNumber */) {
-		//audit.traceIn( "compact", "combining "+ (number()-1) +" underlays" );
+		if (debug) audit.traceIn( "compact", "combining "+ (number()-1) +" underlays" );
 		/*
 		 * For expediency's sake, this function combines all underlaid  (i.e. protected) overlays
 		 */
@@ -149,7 +150,7 @@ class Series { // relates to hypothetical attachment of series of overlays to fs
 			//audit.debug( "count really is: "+ number() );
 			rc = true;
 		}
-		//audit.traceOut( "combine "+ (rc?"done":"failed") +", count="+ number() +", highest="+ highest() );
+		if (debug) audit.traceOut( "combine "+ (rc?"done":"failed") +", count="+ number() +", highest="+ highest() );
 		return rc;
 }	}
 /* --- Q's:
@@ -158,6 +159,7 @@ class Series { // relates to hypothetical attachment of series of overlays to fs
 //-- BEGIN Overlay
 public class Overlay {
 	static private Audit audit = new Audit( "Overlay" );
+	private static boolean debug = false; //Enguage.runtimeDebugging || Enguage.startupDebugging;
 	
 	public static final String DEFAULT = "default";
 	
@@ -211,16 +213,16 @@ public class Overlay {
 	//static public void detach() { Series.detach(); }
 	
 	public void create() {
-		//audit.traceIn( "createOverlay", "" );
+		if (debug) audit.traceIn( "createOverlay", "" );
 		if (Series.attached())
 			Series.append();
 		else
 			audit.debug( "not created -- not attached" );
-		//audit.traceOut();
+		if (debug) audit.traceOut();
 	}
 	public boolean destroy() {
 		// removes top overlay of current series
-		//audit.traceIn( "destroy", "" );
+		if (debug) audit.traceIn( "destroy", "" );
 		boolean rc = false;
 		int topOverlay = Series.highest();
 		if (topOverlay > 0 && !Series.name().equals( "" )) {
@@ -229,7 +231,7 @@ public class Overlay {
 			rc = Filesystem.destroy( nm );
 			if (rc) Series.count();
 		}
-		//audit.traceOut( rc );
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 	private String nthCandidate( String nm, int vn ) {

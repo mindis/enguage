@@ -4,8 +4,9 @@ package com.yagadi.enguage.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.TreeSet;
 
-public class Strings extends ArrayList<String> {
+public class Strings extends ArrayList<String> implements Comparable<Strings> {
 	
 	public static final long serialVersionUID = 0;
 	static private Audit audit = new Audit( "Strings" );
@@ -47,6 +48,12 @@ public class Strings extends ArrayList<String> {
 		if (null != sa)
 			for (int i=0; i<sa.length; i++)
 				add( sa[ i ]);
+	}
+	public Strings( TreeSet<String> sa ) {
+		super();
+		Iterator<String> i = sa.iterator();
+		while (i.hasNext())
+			add( i.next());
 	}
 	public Strings( String buf ) {
 		if (buf != null && !buf.equals( "" )) { // NB this doesn't tie up with parsing in Attributes.c!!!!
@@ -542,20 +549,45 @@ public class Strings extends ArrayList<String> {
 		}
 		return sa;
 	}
-	// ---------------------------------------------------------
+	
+	public int compareTo( Strings sa ) {
+		/* This compareTo() will put the longer strings first so:
+		 * "user", "does", "not"  matches before  "user", "does"
+		 */
+		int rc = 0;
+		Iterator<String> i = iterator(),
+		               sai = sa.iterator();
+		while (rc==0 && i.hasNext() && sai.hasNext())
+			rc = sai.next().compareTo( i.next() );
+		
+		if (rc==0 && (i.hasNext() || sai.hasNext()))
+			rc = i.hasNext() ? -1 : 1 ;
+			
+		return rc;
+	}
+	
 	// ---------------------------------------------------------
 	
 	public static void main( String args[]) {
 		Audit.turnOn(); //main()
 		audit.audit( "hello, world" );
+		
+		Strings a = new Strings( "hello there" ),
+				b = new Strings( "hello world" ),
+		        c = new Strings( "hello there martin" );
+		
+		audit.audit( "comparing "+ a +" to "+ b +" = "+ (a.compareTo( b ) > 0 ? "pass" : "fail" ));
+		audit.audit( "comparing "+ a +" to "+ c +" = "+ (a.compareTo( c ) > 0 ? "pass" : "fail" ));
+		
+		
 		audit.audit( "a: "+ new Strings( "failure won't 'do' 'don't'" ));
 		audit.audit( "b: "+ new Strings( "..........." ));
 		audit.audit( "c: "+ new Strings( "+2.0" ));
 		audit.audit( "d: "+ new Strings( "quantity+=2.0" ));
 		
-		Strings a = new Strings("hello failure"),
-				b = new Strings( "failure" ),
-		        c = new Strings( "world" );
+		a = new Strings("hello failure");
+		b = new Strings( "failure" );
+		c = new Strings( "world" );
 		audit.audit( "e: ["+ a.replace( b, c ).toString( "'", "', '", "'" ) +"]" );
 		String tmp = "+=6";
 		audit.audit( "tmp: "+ tmp.substring( 0, 1 ) + tmp.substring( 2 ));
@@ -573,7 +605,7 @@ public class Strings extends ArrayList<String> {
 		audit.audit( "a is '"+ a.toString() +"'. a is len "+ a.size() );
 		a.addAll( b );
 		audit.audit( "a is now '"+ a.toString() +"'." );
-		
+// */
 		/* /
 		String s = "this test should pass";
 		Strings sa1 = new Strings( s, ' ' );

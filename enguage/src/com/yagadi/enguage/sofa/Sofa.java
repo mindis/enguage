@@ -8,7 +8,6 @@ import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
-
 public class Sofa extends Shell {
 	static private Audit audit = new Audit( "Sofa" );
 
@@ -17,22 +16,6 @@ public class Sofa extends Shell {
 	private static final String True  = SUCCESS;
 	private static final String False = FAIL;
 
-	// -- helpers
-	// [ ""hello", "there"" ] --> "hello there"
-	// not sure if this will work, e.g.: [ "hello \"", "there", "\" martin" ] ???
-	static String newUnquotedCharsFromStrings( Strings a ) { // strips unquoted '"' and "'" parenthesis
-		String chs = "";
-		for (int i=0, asz=a.size(); i<asz; i++) {
-			if (i > 0) chs += " ";
-			char firstCh = a.get( i ).charAt( 0 );
-			if (('"' == firstCh) || ( '\'' == firstCh))
-				for (int cp = 0, cz = a.get( i ).length(); cp < cz && (firstCh != a.get( i ).charAt( cp )); cp++)
-					chs += Character.toString( a.get( i ).charAt( cp ));
-			else
-				chs += a.get( i );
-		}
-		return chs;
-	}
 	public String doCall( Strings a ) {
 		//audit.traceIn( "doCall", a.toString( Strings.CSV ));
 		if (null != a && a.size() > 1) {
@@ -41,7 +24,7 @@ public class Sofa extends Shell {
 			 * 		["a", "b", "c='d'", "e", "f='g'"]
 			 * Sofa.interpret() typically deals with:
 			 * 		["string", "get", "martin", "name"]
-			 * 		["colloquial", "add", "'I have'", "'I've'"]
+			 * 		["colloquial", "both", "'I have'", "'I've'"]
 			 * Need to ensure first 4? name/value pairs are dereferenced
 			 * Needs to be done here, as call() will be called independently
 			 * May need to be selective on how this is done, depending on sofa 
@@ -53,9 +36,7 @@ public class Sofa extends Shell {
 			//a = a.normalise().contract( "=" );// rejig:"list","get","one two","three four"] => "list","get","one","two","three","four"]
 			//audit.debug("Sofa.doCall() => "+ a.toString());
 			
-			String  type = a.get( 0 ),
-			      method = Attribute.expandValues( a.get( 1 )).toString( Strings.SPACED );
-			
+			String  type = a.get( 0 );
 			return //audit.traceOut(
 			     a.size() == 1 && type.equals(         True ) ? True :
 				 a.size() == 1 && type.equals(        False ) ? False :
@@ -70,30 +51,19 @@ public class Sofa extends Shell {
 				                  type.equals( "colloquial" ) ?  Colloquial.interpret( a.copyAfter( 0 ) ) :
 				               	  type.equals(  Plural.NAME ) ?      Plural.interpret( a.copyAfter( 0 ) ) :
 				               	  type.equals(    Item.NAME ) ?        Item.interpret( a.copyAfter( 0 ) ) :
-				 a.size() == 4 && type.equals( "host" ) && method.equals( "add" ) ? Colloquial.host().add( Strings.trim( a.get( 2 ), '"' ), Strings.trim( a.get( 3 ), '"' )) :
-				 a.size() == 4 && type.equals( "user" ) && method.equals( "add" ) ? Colloquial.user().add( Strings.trim( a.get( 2 ), '"' ), Strings.trim( a.get( 3 ), '"' )) :
-			                    	  Shell.FAIL; // );
+			                    	  FAIL; // );
 		}
 		audit.ERROR("doCall() fails - "+ (a==null?"no params":"not enough params: "+ a.toString()));
-		return Shell.FAIL; //audit.traceOut( Shell.FAIL ); //
+		return FAIL; //audit.traceOut( FAIL ); //
 	}
 	
 	// perhaps need to re-think this? Do we need this stage - other than for relative concept???
 	private String doSofa( Strings prog ) {
-		String rc = null;
-		/* TODO: not sure if this is used anymore -- 
-		 * stdout isn't used - need to return unquoted,
-		 * prog will be the first value only, e.g. '"hello there"', '||', ...
-		 * newUnquoted... is flawed, in several ways.
-		 */
-		if (('"' == prog.get( 0 ).charAt( 0 )) || ('\'' == prog.get( 0 ).charAt( 0 ))) { // is prog a constant string
-			String chs = newUnquotedCharsFromStrings( prog );
-			Strings a = Strings.fromNonWS( chs );
-			//a = preProcessAnA( a );
-			System.out.println( a.toString( Strings.SPACED ));
-		} else
-			rc = doCall( prog );
-		return rc ;
+		String cmd = prog.get( 0 );
+		char firstCh = cmd.charAt( 0 );
+		return ('"' == firstCh || '\'' == firstCh) ?
+				Strings.stripQuotes( cmd )
+				: doCall( prog );
 	}
 
 	private String doNeg( Strings prog ) {
@@ -178,7 +148,15 @@ public class Sofa extends Shell {
 	}
 	public String interpret( Strings sa ) {
 		Strings a = new Strings( sa );
-		return doExpr( a );
+		for (String s : sa) {
+			if (   s.equals("&&") 
+				|| s.equals("||")
+				|| s.equals("(")
+				|| s.equals("!")
+			   ) {
+				return doSofa( a );
+		}	}
+		return doExpr( a ); // still need to check if it is a constant
 	}
 	
 	public static void main( String[] argv ) { // sanity check...
@@ -194,7 +172,7 @@ public class Sofa extends Shell {
 			a.add( new Attribute( "m", "martin" ));
 			a.add( new Attribute( "r", "ruth" ));
 			
-			args = a.deref( Variable.deref( args ), true );			
+			args = a.deref( /* Variabloe.deref( */ args /*)*/, true );			
 			System.out.println( "Cmds are: "+ args.toString( Strings.SPACED ));
 			
 			Sofa cmd = new Sofa( args );

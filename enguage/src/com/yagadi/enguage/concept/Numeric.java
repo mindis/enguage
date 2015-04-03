@@ -7,6 +7,20 @@ import com.yagadi.enguage.util.Number;
 public class Numeric {
 	static private Audit audit = new Audit( "Numeric" );
 	
+	/*
+	 * NEED TO DEFINE (non-)Numerics, e.g.:
+	 * 
+	 * <xml>
+	 * 	<nonnumeric quantity='1'  relative='no'  exact='no'  multiplier='no'>some</nonnumeric>
+	 * 	<nonnumeric quantity='2'  relative='no'  exact='yes' multiplier='no'>a pair</nonnumeric>
+	 * 	<nonnumeric quantity='~2' relative='no'  exact='no'  multiplier='no'>a couple</nonnumeric>
+	 * 	<nonnumeric quantity='~3' relative='no'  exact='no'  multiplier='no'>a few</nonnumeric>
+	 * 	<nonnumeric quantity='+1' relative='yes' exact='yes' multiplier='yes'>another</nonnumeric>
+	 * 	<nonnumeric quantity='1'  relative='no'  exact='yes' multiplier='yes'>one</nonnumeric>
+	 * </xml>
+	 * 
+	 */
+	
 	static private int opLen( Strings s, int i ) { // too simplistic?
 		audit.traceIn( "opLen", "s="+ s.toString() +", from="+ i );
 		int rc = 0;

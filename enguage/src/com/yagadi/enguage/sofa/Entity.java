@@ -16,7 +16,9 @@ class EntityShell extends Shell {
 public class Entity {
 	static private Audit audit = new Audit( "Entity" );
 	
-	public static String name( String entity, String rw ) { return Overlay.fsname( entity, rw );}
+	public static String name( String entity, String rw ) {
+		return Overlay.fsname( entity, rw );
+	}
 	public static boolean exists( String name ) {
 		audit.traceIn( "exists", Overlay.fsname( name, Overlay.MODE_READ ));
 		audit.debug( "NAME="+ name( name, Overlay.MODE_READ ));

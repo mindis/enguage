@@ -4038,68 +4038,73 @@ android.support.v7.widget.SuggestionsAdapter$ChildViewCache -> android.support.v
     android.widget.ImageView mIcon2 -> d
     android.widget.ImageView mIconRefine -> e
 com.yagadi.enguage.Enguage -> com.yagadi.a.a:
-    com.yagadi.enguage.util.Audit audit -> h
-    boolean debug -> i
+    com.yagadi.enguage.util.Audit audit -> e
     com.yagadi.enguage.Enguage e -> a
     com.yagadi.enguage.sofa.Overlay o -> b
-    android.app.Activity ctx -> j
-    boolean undoEnabled -> k
-    boolean understood -> l
-    java.lang.String lastOutput -> m
-    com.yagadi.enguage.util.Strings lastInput -> n
-    com.yagadi.enguage.concept.Repertoire signs -> c
-    com.yagadi.enguage.concept.Repertoire autop -> d
-    com.yagadi.enguage.concept.Repertoire engin -> e
+    android.app.Activity ctx -> f
+    boolean understood -> g
+    java.lang.String lastOutput -> h
+    com.yagadi.enguage.util.Strings lastInput -> i
     boolean silentStartup() -> a
     android.app.Activity ctx() -> b
-    boolean undoIsEnabled() -> c
-    void undoEnabledIs(boolean) -> a
-    boolean lastReplyWasUnderstood() -> d
-    void lastReplyWasUnderstood(boolean) -> c
+    boolean lastReplyWasUnderstood() -> c
+    void lastReplyWasUnderstood(boolean) -> b
     java.lang.String lastOutput(java.lang.String) -> a
-    java.lang.String lastOutput() -> e
+    java.lang.String lastOutput() -> d
     com.yagadi.enguage.util.Strings lastInput(com.yagadi.enguage.util.Strings) -> a
-    com.yagadi.enguage.util.Strings lastInput() -> f
+    com.yagadi.enguage.util.Strings lastInput() -> e
+    void loadConfig(java.lang.String) -> b
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> b
-com.yagadi.enguage.concept.Autopoiesis -> com.yagadi.a.a.a:
+com.yagadi.enguage.concept.Autoload -> com.yagadi.a.a.a:
+    com.yagadi.enguage.util.Audit audit -> b
+    boolean debug -> c
+    int ttl -> d
+    int autoloading -> a
+    java.util.TreeMap autoloaded -> e
+    void ttl(java.lang.String) -> a
+    void ing(boolean) -> a
+    boolean ing() -> a
+    com.yagadi.enguage.util.Strings load(com.yagadi.enguage.util.Strings) -> a
+    void unload() -> b
+com.yagadi.enguage.concept.Autopoiesis -> com.yagadi.a.a.b:
     com.yagadi.enguage.util.Audit audit -> d
-    boolean debug -> e
     com.yagadi.enguage.concept.Sign[] autopoiesis -> a
-    com.yagadi.enguage.concept.Sign s -> f
-    java.lang.String newCharsSingleUpperChar(java.lang.String) -> f
+    com.yagadi.enguage.concept.Sign s -> e
+    java.lang.String concept -> f
+    void concept(java.lang.String) -> a
+    java.lang.String concept() -> a
     com.yagadi.enguage.expression.Reply mediate(com.yagadi.enguage.expression.Reply) -> a
-com.yagadi.enguage.concept.Engine -> com.yagadi.a.a.b:
+com.yagadi.enguage.concept.Engine -> com.yagadi.a.a.c:
     com.yagadi.enguage.util.Audit audit -> d
     com.yagadi.enguage.concept.Sign[] commands -> a
-    boolean helpRun -> e
-    boolean spoken -> f
-    boolean disambFound -> g
+    boolean undoEnabled -> e
+    boolean helpRun -> f
+    boolean spoken -> g
+    boolean disambFound -> h
     com.yagadi.enguage.expression.Reply unknownCommand(com.yagadi.enguage.expression.Reply,com.yagadi.enguage.util.Strings) -> a
-    void helpRun(boolean) -> a
-    boolean helpRun() -> a
-    void spoken(boolean) -> b
-    void disambFound(boolean) -> c
-    boolean disambFound() -> b
+    boolean undoIsEnabled() -> a
+    void undoEnabledIs(boolean) -> a
+    void helpRun(boolean) -> b
+    boolean helpRun() -> b
+    void spoken(boolean) -> c
+    boolean spoken() -> c
+    void disambFound(boolean) -> d
+    boolean disambFound() -> d
     void disambOn(com.yagadi.enguage.util.Strings) -> a
-    void disambOff() -> c
+    void disambOff() -> e
     com.yagadi.enguage.expression.Reply mediate(com.yagadi.enguage.expression.Reply) -> a
-com.yagadi.enguage.concept.Intention -> com.yagadi.a.a.c:
+com.yagadi.enguage.concept.Intention -> com.yagadi.a.a.d:
     com.yagadi.enguage.util.Audit audit -> a
     boolean debug -> d
-    com.yagadi.enguage.expression.Reply think(java.lang.String) -> f
-    java.lang.String conceptualise(java.lang.String) -> g
-    com.yagadi.enguage.expression.Reply reply(com.yagadi.enguage.expression.Reply) -> b
+    com.yagadi.enguage.expression.Reply think(com.yagadi.enguage.expression.Reply) -> b
+    java.lang.String conceptualise(java.lang.String) -> a
+    com.yagadi.enguage.expression.Reply reply(com.yagadi.enguage.expression.Reply) -> c
     com.yagadi.enguage.expression.Reply mediate(com.yagadi.enguage.expression.Reply) -> a
-com.yagadi.enguage.concept.Repertoire -> com.yagadi.a.a.d:
+com.yagadi.enguage.concept.Repertoire -> com.yagadi.a.a.e:
     com.yagadi.enguage.util.Audit audit -> b
     java.lang.String PREFIX -> c
     java.lang.String help -> a
-    java.lang.String def -> d
-    com.yagadi.enguage.util.Strings names -> e
-    java.lang.String lastLoaded -> f
-    java.lang.String nowLoading -> g
-    boolean loadedDefaultRep -> h
-    boolean initialising -> i
+    java.lang.String prime -> d
     com.yagadi.enguage.util.Strings helpItems(java.lang.String,boolean) -> a
     java.lang.String helpToString(java.lang.String,java.lang.String,java.lang.String,boolean) -> a
     java.lang.String helpToHtml(java.lang.String) -> a
@@ -4107,69 +4112,85 @@ com.yagadi.enguage.concept.Repertoire -> com.yagadi.a.a.d:
     java.lang.String helpToString(java.lang.String) -> b
     java.lang.String help() -> b
     void help(java.lang.String) -> c
-    void def(java.lang.String) -> d
-    java.lang.String def() -> c
-    boolean namesAdd(java.lang.String) -> k
-    void namesRemove(java.lang.String) -> l
-    com.yagadi.enguage.util.Strings names() -> d
-    void lastLoaded(java.lang.String) -> e
-    java.lang.String lastLoaded() -> e
-    void nowLoading(java.lang.String) -> f
-    java.lang.String nowLoading() -> f
-    boolean defaultRepIsLoaded() -> g
-    void defaultRepLoadedIs(boolean) -> a
-    void unload(java.lang.String) -> g
-    boolean load(java.lang.String) -> h
-    boolean initialisingIs(boolean) -> b
+    void prime(java.lang.String) -> d
+    java.lang.String prime() -> c
+com.yagadi.enguage.concept.Repertoires -> com.yagadi.a.a.f:
+    com.yagadi.enguage.util.Audit audit -> d
+    boolean debug -> e
+    com.yagadi.enguage.concept.Repertoire signs -> a
+    com.yagadi.enguage.concept.Repertoire autop -> b
+    com.yagadi.enguage.concept.Repertoire engin -> c
+    boolean initialising -> f
+    boolean loadedDefaultRep -> g
+    java.util.TreeSet loaded -> h
+    boolean isInitialising() -> a
+    boolean initialisingIs(boolean) -> a
+    boolean defaultRepIsLoaded() -> b
+    void defaultRepLoadedIs(boolean) -> b
+    java.lang.String location() -> c
+    boolean loadSigns(java.lang.String) -> a
+    java.util.TreeSet names() -> d
+    void loadConcept(java.lang.String) -> b
+    void unloadConcept(java.lang.String) -> c
     void loadConcepts(com.yagadi.enguage.concept.Tag) -> a
-    com.yagadi.enguage.expression.Reply innerterpret(com.yagadi.enguage.util.Strings) -> a
-    void loadConfig(java.lang.String) -> i
-com.yagadi.enguage.concept.Sign -> com.yagadi.a.a.e:
-    com.yagadi.enguage.util.Audit audit -> j
-    boolean debug -> k
-    int complexity -> l
-    int getComplexity() -> a
-    int setComplexity() -> b
-    int rank(com.yagadi.enguage.concept.Signs) -> a
+    com.yagadi.enguage.expression.Reply interpret(com.yagadi.enguage.util.Strings) -> a
+com.yagadi.enguage.concept.Sign -> com.yagadi.a.a.g:
+    com.yagadi.enguage.util.Audit audit -> l
+    int interpretation -> a
+    java.lang.String concept -> m
+    java.lang.String help -> n
+    java.util.Random rn -> b
+    java.lang.String concept() -> a
+    com.yagadi.enguage.concept.Sign concept(java.lang.String) -> a
+    java.lang.String help() -> b
+    com.yagadi.enguage.concept.Sign help(java.lang.String) -> b
+    int complexity(com.yagadi.enguage.concept.Tag) -> a
     com.yagadi.enguage.concept.Sign attribute(java.lang.String,java.lang.String) -> a
-    com.yagadi.enguage.concept.Sign content(com.yagadi.enguage.concept.Tag) -> a
     com.yagadi.enguage.concept.Sign content(com.yagadi.enguage.concept.Tags) -> a
+    com.yagadi.enguage.concept.Sign content(com.yagadi.enguage.concept.Tag) -> b
+    java.lang.String toString(int,long) -> a
     com.yagadi.enguage.expression.Reply interpret() -> c
-    java.lang.String toString(int) -> a
-    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tag) -> b
+    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tag) -> c
+    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tags) -> b
     com.yagadi.enguage.concept.Tag attribute(java.lang.String,java.lang.String) -> b
-com.yagadi.enguage.concept.Signs -> com.yagadi.a.a.f:
+com.yagadi.enguage.concept.Signs -> com.yagadi.a.a.h:
     com.yagadi.enguage.util.Audit audit -> a
-    int posn -> b
-    java.util.ArrayList ignore -> c
+    java.lang.String name -> b
+    int total -> c
+    int clashes -> d
+    int posn -> e
+    java.util.ArrayList ignore -> f
+    int interpretation -> g
     com.yagadi.enguage.concept.Signs insert(com.yagadi.enguage.concept.Sign) -> a
+    java.lang.String stats() -> d
     void swap(int,int) -> a
-    void reorder() -> h
-    void remove(java.lang.String) -> j
-    void show() -> i
-    java.lang.String toString() -> toString
+    void reorder() -> e
+    void remove(java.lang.String) -> e
+    void show() -> f
     void foundAt(int) -> a
-    int lastFoundAt() -> j
-    java.util.ArrayList ignore() -> k
+    int lastFoundAt() -> g
+    java.util.ArrayList ignore() -> h
     void ignore(int) -> b
-    void ignoreNone() -> l
-    com.yagadi.enguage.expression.Reply interpret(com.yagadi.enguage.util.Strings) -> b
-com.yagadi.enguage.concept.Tag -> com.yagadi.a.a.g:
-    com.yagadi.enguage.util.Audit audit -> j
-    boolean debug -> k
+    void ignoreNone() -> i
+    int interpretation() -> a
+    java.lang.String toString() -> toString
+    com.yagadi.enguage.expression.Reply interpret(com.yagadi.enguage.util.Strings) -> a
+com.yagadi.enguage.concept.Tag -> com.yagadi.a.a.i:
+    com.yagadi.enguage.util.Audit audit -> a
+    boolean debug -> b
     int type -> l
-    java.lang.String quotedPrefix -> a
-    java.lang.String pluralPrefix -> b
-    java.lang.String numericPrefix -> c
-    java.lang.String singularPrefix -> d
-    com.yagadi.enguage.util.Strings prefixAsStrings -> e
-    java.lang.String prefix -> f
-    java.lang.String postfix -> g
+    java.lang.String quotedPrefix -> c
+    java.lang.String pluralPrefix -> d
+    java.lang.String numericPrefix -> e
+    java.lang.String singularPrefix -> f
+    com.yagadi.enguage.util.Strings prefixAsStrings -> g
+    java.lang.String prefix -> h
+    java.lang.String postfix -> i
     java.lang.String name -> m
-    com.yagadi.enguage.sofa.Attributes attrs -> h
-    com.yagadi.enguage.concept.Tags content -> i
+    com.yagadi.enguage.sofa.Attributes attrs -> j
+    com.yagadi.enguage.concept.Tags content -> k
     int type() -> a
-    void type(int) -> a
+    void type(int) -> b
     boolean quoted() -> d
     boolean phrased() -> e
     boolean pluraled() -> f
@@ -4177,31 +4198,31 @@ com.yagadi.enguage.concept.Tag -> com.yagadi.a.a.g:
     boolean validQuote(boolean) -> b
     com.yagadi.enguage.util.Strings prefixAsStrings() -> g
     java.lang.String prefix() -> h
-    com.yagadi.enguage.concept.Tag prefix(java.lang.String) -> a
+    com.yagadi.enguage.concept.Tag prefix(java.lang.String) -> c
     com.yagadi.enguage.util.Strings postfixAsStrings() -> i
     java.lang.String postfix() -> j
-    com.yagadi.enguage.concept.Tag postfix(java.lang.String) -> b
+    com.yagadi.enguage.concept.Tag postfix(java.lang.String) -> d
     java.lang.String name() -> k
-    com.yagadi.enguage.concept.Tag name(java.lang.String) -> c
+    com.yagadi.enguage.concept.Tag name(java.lang.String) -> e
     com.yagadi.enguage.sofa.Attributes attributes() -> l
     com.yagadi.enguage.concept.Tag attributes(com.yagadi.enguage.sofa.Attributes) -> a
-    java.lang.String attribute(java.lang.String) -> d
+    java.lang.String attribute(java.lang.String) -> f
     com.yagadi.enguage.concept.Tag attribute(java.lang.String,java.lang.String) -> b
     com.yagadi.enguage.concept.Tag append(java.lang.String,java.lang.String) -> c
     com.yagadi.enguage.concept.Tag prepend(java.lang.String,java.lang.String) -> d
-    com.yagadi.enguage.concept.Tag remove(int) -> b
     com.yagadi.enguage.concept.Tag replace(java.lang.String,java.lang.String) -> e
     boolean isNull() -> m
     com.yagadi.enguage.concept.Tags content() -> n
-    com.yagadi.enguage.concept.Tag removeContent(int) -> c
+    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tags) -> b
+    com.yagadi.enguage.concept.Tag removeContent(int) -> a
     com.yagadi.enguage.concept.Tag content(int,com.yagadi.enguage.concept.Tag) -> a
-    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tag) -> b
-    void updateAttributes(com.yagadi.enguage.concept.Tag) -> c
-    int remove(com.yagadi.enguage.concept.Tag) -> d
-    int removeMatches(com.yagadi.enguage.concept.Tag) -> e
-    boolean equals(com.yagadi.enguage.concept.Tag) -> f
-    boolean matches(com.yagadi.enguage.concept.Tag) -> g
-    boolean matchesContent(com.yagadi.enguage.concept.Tag) -> h
+    com.yagadi.enguage.concept.Tag content(com.yagadi.enguage.concept.Tag) -> c
+    void updateAttributes(com.yagadi.enguage.concept.Tag) -> d
+    int remove(com.yagadi.enguage.concept.Tag) -> e
+    int removeMatches(com.yagadi.enguage.concept.Tag) -> f
+    boolean equals(com.yagadi.enguage.concept.Tag) -> g
+    boolean matches(com.yagadi.enguage.concept.Tag) -> h
+    boolean matchesContent(com.yagadi.enguage.concept.Tag) -> i
     com.yagadi.enguage.concept.Tag doPreamble() -> b
     com.yagadi.enguage.concept.Tag doName() -> c
     com.yagadi.enguage.concept.Tag doAttrs() -> p
@@ -4209,17 +4230,16 @@ com.yagadi.enguage.concept.Tag -> com.yagadi.a.a.g:
     com.yagadi.enguage.concept.Tag doEnd() -> r
     java.lang.String toString() -> toString
     java.lang.String toText() -> o
-    com.yagadi.enguage.concept.Tag fromFile(java.lang.String) -> e
+    com.yagadi.enguage.concept.Tag fromFile(java.lang.String) -> g
     com.yagadi.enguage.concept.Tag fromAsset(java.lang.String,android.app.Activity) -> a
-    com.yagadi.enguage.concept.Tag findByName(java.lang.String) -> f
-com.yagadi.enguage.concept.Tags -> com.yagadi.a.a.h:
-    com.yagadi.enguage.util.Audit audit -> g
-    boolean debug -> a
-    java.lang.String prefix -> b
-    java.lang.String prefix2 -> c
-    java.lang.String postfix -> d
-    java.lang.String testPhrase -> e
-    java.lang.String testPhrase2 -> f
+    com.yagadi.enguage.concept.Tag findByName(java.lang.String) -> h
+com.yagadi.enguage.concept.Tags -> com.yagadi.a.a.j:
+    com.yagadi.enguage.util.Audit audit -> f
+    java.lang.String prefix -> a
+    java.lang.String prefix2 -> b
+    java.lang.String postfix -> c
+    java.lang.String testPhrase -> d
+    java.lang.String testPhrase2 -> e
     java.lang.String toString() -> toString
     java.lang.String toText() -> a
     boolean equals(com.yagadi.enguage.concept.Tags) -> a
@@ -4229,9 +4249,9 @@ com.yagadi.enguage.concept.Tags -> com.yagadi.a.a.h:
     java.lang.String getPhraseTerm(com.yagadi.enguage.concept.Tag,java.util.ListIterator) -> b
     boolean validListEnd(java.lang.String,java.util.ListIterator) -> a
     java.lang.String getVal(com.yagadi.enguage.concept.Tag,java.util.ListIterator,java.util.ListIterator) -> a
-    com.yagadi.enguage.sofa.Attributes matchValues(com.yagadi.enguage.util.Strings) -> a
     java.lang.String invalidTagReason(com.yagadi.enguage.concept.Tag,java.util.ListIterator) -> c
     java.util.ListIterator matchBoilerplate(com.yagadi.enguage.util.Strings,java.util.ListIterator) -> a
+    com.yagadi.enguage.sofa.Attributes matchValues(com.yagadi.enguage.util.Strings) -> a
 com.yagadi.enguage.expression.Answer -> com.yagadi.a.b.a:
     com.yagadi.enguage.util.Strings values -> a
     char separator -> b
@@ -4247,22 +4267,20 @@ com.yagadi.enguage.expression.Answer -> com.yagadi.a.b.a:
     java.lang.String toString() -> toString
 com.yagadi.enguage.expression.Colloquial -> com.yagadi.a.b.b:
     com.yagadi.enguage.util.Audit audit -> a
-    java.util.ArrayList froms -> b
-    java.util.ArrayList tos -> c
+    java.util.TreeMap intl -> b
+    java.util.TreeMap extl -> c
     com.yagadi.enguage.expression.Colloquial user -> d
     com.yagadi.enguage.expression.Colloquial host -> e
     com.yagadi.enguage.expression.Colloquial symmetric -> f
-    java.lang.String add(java.lang.String,java.lang.String) -> a
     void add(com.yagadi.enguage.util.Strings,com.yagadi.enguage.util.Strings) -> a
     com.yagadi.enguage.util.Strings externalise(com.yagadi.enguage.util.Strings) -> a
     com.yagadi.enguage.util.Strings internalise(com.yagadi.enguage.util.Strings) -> b
-    java.lang.String toString() -> toString
     com.yagadi.enguage.expression.Colloquial user() -> a
     com.yagadi.enguage.expression.Colloquial host() -> b
     com.yagadi.enguage.expression.Colloquial symmetric() -> c
-    java.lang.String applyOutgoingColloquia(java.lang.String) -> a
-    com.yagadi.enguage.util.Strings applyOutgoingColloquia(com.yagadi.enguage.util.Strings) -> c
-    java.lang.String interpret(com.yagadi.enguage.util.Strings) -> d
+    com.yagadi.enguage.util.Strings applyOutgoing(com.yagadi.enguage.util.Strings) -> c
+    com.yagadi.enguage.util.Strings applyIncoming(com.yagadi.enguage.util.Strings) -> d
+    java.lang.String interpret(com.yagadi.enguage.util.Strings) -> e
 com.yagadi.enguage.expression.Language -> com.yagadi.a.b.c:
     com.yagadi.enguage.util.Strings headers -> a
     com.yagadi.enguage.util.Strings tailers -> b
@@ -4278,8 +4296,8 @@ com.yagadi.enguage.expression.Language -> com.yagadi.a.b.c:
     boolean wordsEqualIgnoreCase(java.lang.String,java.lang.String) -> a
 com.yagadi.enguage.expression.Plural -> com.yagadi.a.b.d:
     com.yagadi.enguage.util.Audit audit -> a
-    java.util.ArrayList singularExceptions -> b
-    java.util.ArrayList pluralExceptions -> c
+    java.util.TreeMap singularExceptions -> b
+    java.util.TreeMap pluralExceptions -> c
     java.util.ArrayList singularEndings -> d
     java.util.ArrayList pluralEndings -> e
     void addException(java.lang.String,java.lang.String) -> a
@@ -4309,62 +4327,61 @@ com.yagadi.enguage.expression.Reply -> com.yagadi.a.b.e:
     com.yagadi.enguage.util.Strings andListFormat -> q
     com.yagadi.enguage.util.Strings orListFormat -> r
     java.util.ArrayList contexts -> s
-    com.yagadi.enguage.expression.Answer answer -> t
-    java.lang.String ansCache -> u
-    com.yagadi.enguage.util.Strings format -> v
-    boolean repeated -> w
-    boolean done -> x
+    int type -> t
+    com.yagadi.enguage.expression.Answer answer -> u
+    java.lang.String ansCache -> v
+    com.yagadi.enguage.util.Strings format -> w
+    boolean repeated -> x
+    boolean done -> y
     com.yagadi.enguage.util.Strings say -> a
-    int type -> y
-    boolean verbose() -> y
+    boolean verbose() -> x
     boolean isVerbatim() -> a
     void verbatimIs(boolean) -> a
     void strangeThought(java.lang.String) -> a
-    java.lang.String strangeThought() -> b
     void dnu(java.lang.String) -> b
-    java.lang.String dnu() -> c
+    java.lang.String dnu() -> b
     void dnk(java.lang.String) -> c
-    java.lang.String dnk() -> d
+    java.lang.String dnk() -> c
     void ik(java.lang.String) -> d
-    java.lang.String ik() -> e
+    java.lang.String ik() -> d
     void no(java.lang.String) -> e
-    java.lang.String no() -> f
+    java.lang.String no() -> e
     void yes(java.lang.String) -> f
-    java.lang.String yes() -> g
+    java.lang.String yes() -> f
     void failure(java.lang.String) -> g
     void success(java.lang.String) -> h
-    java.lang.String success() -> h
+    java.lang.String success() -> g
     void repeatFormat(java.lang.String) -> i
-    java.lang.String repeatFormat() -> i
+    java.lang.String repeatFormat() -> h
     void helpPrefix(java.lang.String) -> j
-    java.lang.String helpPrefix() -> j
+    java.lang.String helpPrefix() -> i
     void conjunctions(com.yagadi.enguage.util.Strings) -> a
-    com.yagadi.enguage.util.Strings conjunctions() -> k
+    com.yagadi.enguage.util.Strings conjunctions() -> j
     void referencers(com.yagadi.enguage.util.Strings) -> b
-    com.yagadi.enguage.util.Strings referencers() -> l
+    com.yagadi.enguage.util.Strings referencers() -> k
     void listSep(java.lang.String) -> k
-    java.lang.String listSep() -> m
+    java.lang.String listSep() -> l
     void andListFormat(java.lang.String) -> l
-    com.yagadi.enguage.util.Strings andListFormat() -> n
+    com.yagadi.enguage.util.Strings andListFormat() -> m
     void orListFormat(java.lang.String) -> m
     void pushContext(com.yagadi.enguage.sofa.Attributes) -> a
-    void popContext() -> o
-    com.yagadi.enguage.sofa.Attributes context() -> p
-    java.lang.String answer() -> q
+    void popContext() -> n
+    com.yagadi.enguage.sofa.Attributes context() -> o
+    int calculateType() -> y
+    int getType() -> p
+    boolean negative() -> q
+    java.lang.String answer() -> r
     com.yagadi.enguage.expression.Reply answer(java.lang.String) -> n
     com.yagadi.enguage.expression.Reply format(java.lang.String) -> o
     com.yagadi.enguage.expression.Reply format(com.yagadi.enguage.util.Strings) -> c
-    com.yagadi.enguage.util.Strings format() -> r
+    com.yagadi.enguage.util.Strings format() -> s
     void repeated(boolean) -> b
-    boolean repeated() -> s
+    boolean repeated() -> t
     void doneIs(boolean) -> c
-    boolean isDone() -> t
-    java.lang.String say() -> u
+    boolean isDone() -> u
+    java.lang.String say() -> v
     void say(com.yagadi.enguage.util.Strings) -> d
-    int calculateType() -> z
-    int getType() -> v
-    boolean negative() -> w
-    java.lang.String asString() -> x
+    java.lang.String asString() -> w
     java.lang.String toString() -> toString
     void setContext(com.yagadi.enguage.sofa.Attribute) -> a
     void setContext(java.util.ArrayList) -> a
@@ -4376,36 +4393,33 @@ com.yagadi.enguage.sofa.Attribute -> com.yagadi.a.c.a:
     char quote -> d
     java.lang.String name -> b
     java.lang.String value -> c
-    java.lang.String valueFromAttribute(java.lang.String) -> f
+    java.lang.String valueFromAttribute(java.lang.String) -> a
     char quote() -> a
     void quote(char) -> b
-    java.lang.String name() -> d
-    com.yagadi.enguage.sofa.Attribute name(java.lang.String) -> a
-    java.lang.String value() -> e
-    com.yagadi.enguage.sofa.Attribute value(java.lang.String) -> b
+    java.lang.String name() -> f
+    com.yagadi.enguage.sofa.Attribute name(java.lang.String) -> b
+    java.lang.String value() -> g
+    com.yagadi.enguage.sofa.Attribute value(java.lang.String) -> c
     java.lang.String toString() -> toString
     java.lang.String toString(char) -> a
-    java.lang.String nameFromAttribute(java.lang.String) -> c
-    com.yagadi.enguage.util.Strings expandValues(java.lang.String) -> d
+    java.lang.String nameFromAttribute(java.lang.String) -> d
+    com.yagadi.enguage.util.Strings expandValues(java.lang.String) -> e
     boolean isAlphabetic(java.lang.String) -> g
-    boolean isAttribute(java.lang.String) -> e
+    boolean isAttribute(java.lang.String) -> f
 com.yagadi.enguage.sofa.Attributes -> com.yagadi.a.c.b:
     com.yagadi.enguage.util.Audit audit -> a
     boolean matches(com.yagadi.enguage.sofa.Attributes) -> a
-    boolean has(java.lang.String) -> a
-    boolean hasIgnoreCase(java.lang.String) -> b
-    java.lang.String get(java.lang.String) -> c
-    java.lang.String remove(java.lang.String) -> d
-    java.lang.String getIgnoreCase(java.lang.String) -> e
-    java.lang.String toString(java.lang.String) -> f
+    boolean hasIgnoreCase(java.lang.String) -> a
+    java.lang.String get(java.lang.String) -> b
+    java.lang.String remove(java.lang.String) -> c
+    java.lang.String getIgnoreCase(java.lang.String) -> d
+    java.lang.String toString(java.lang.String) -> e
     java.lang.String toString() -> toString
-    boolean isUpperCase(java.lang.String) -> g
-    boolean isAlphabetic(java.lang.String) -> h
-    java.lang.String derefName(java.lang.String,boolean) -> b
+    boolean isUpperCase(java.lang.String) -> f
+    boolean isAlphabetic(java.lang.String) -> g
+    java.lang.String derefName(java.lang.String,boolean) -> a
     com.yagadi.enguage.util.Strings deref(com.yagadi.enguage.util.Strings) -> a
     com.yagadi.enguage.util.Strings deref(com.yagadi.enguage.util.Strings,boolean) -> a
-    java.lang.String deref(java.lang.String) -> i
-    java.lang.String deref(java.lang.String,boolean) -> a
     void delistify() -> a
 com.yagadi.enguage.sofa.Entity -> com.yagadi.a.c.c:
     com.yagadi.enguage.util.Audit audit -> a
@@ -4444,10 +4458,11 @@ com.yagadi.enguage.sofa.Numeric -> com.yagadi.a.c.e:
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> b
 com.yagadi.enguage.sofa.Overlay -> com.yagadi.a.c.f:
     com.yagadi.enguage.util.Audit audit -> a
-    com.yagadi.enguage.util.Path p -> b
-    java.lang.String error -> c
-    com.yagadi.enguage.sofa.Overlay singletonO -> d
-    boolean inTxn -> e
+    boolean debug -> b
+    com.yagadi.enguage.util.Path p -> c
+    java.lang.String error -> d
+    com.yagadi.enguage.sofa.Overlay singletonO -> e
+    boolean inTxn -> f
     java.lang.String path() -> i
     boolean path(java.lang.String) -> a
     int count() -> a
@@ -4484,10 +4499,11 @@ com.yagadi.enguage.sofa.Preferences -> com.yagadi.a.c.h:
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> a
 com.yagadi.enguage.sofa.Series -> com.yagadi.a.c.i:
     com.yagadi.enguage.util.Audit audit -> a
-    java.lang.String basePointer -> b
-    java.lang.String name -> c
-    int number -> d
-    int highest -> e
+    boolean debug -> b
+    java.lang.String basePointer -> c
+    java.lang.String name -> d
+    int number -> e
+    int highest -> f
     java.lang.String baseName(java.lang.String) -> e
     java.lang.String base(java.lang.String) -> a
     boolean existing(java.lang.String) -> b
@@ -4506,16 +4522,16 @@ com.yagadi.enguage.sofa.Series -> com.yagadi.a.c.i:
     boolean compact() -> h
 com.yagadi.enguage.sofa.Sofa -> com.yagadi.a.c.j:
     com.yagadi.enguage.util.Audit audit -> a
-    java.lang.String newUnquotedCharsFromStrings(com.yagadi.enguage.util.Strings) -> a
-    java.lang.String doCall(com.yagadi.enguage.util.Strings) -> c
-    java.lang.String doSofa(com.yagadi.enguage.util.Strings) -> i
-    java.lang.String doNeg(com.yagadi.enguage.util.Strings) -> j
-    java.lang.String doOrList(com.yagadi.enguage.util.Strings) -> k
-    java.lang.String doAndList(com.yagadi.enguage.util.Strings) -> l
-    java.lang.String doExpr(com.yagadi.enguage.util.Strings) -> m
+    java.lang.String doCall(com.yagadi.enguage.util.Strings) -> a
+    java.lang.String doSofa(com.yagadi.enguage.util.Strings) -> h
+    java.lang.String doNeg(com.yagadi.enguage.util.Strings) -> i
+    java.lang.String doOrList(com.yagadi.enguage.util.Strings) -> j
+    java.lang.String doAndList(com.yagadi.enguage.util.Strings) -> k
+    java.lang.String doExpr(com.yagadi.enguage.util.Strings) -> l
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> b
 com.yagadi.enguage.sofa.Value -> com.yagadi.a.c.k:
     com.yagadi.enguage.util.Audit audit -> c
+    boolean debug -> d
     java.lang.String ent -> a
     java.lang.String attr -> b
     java.lang.String name(java.lang.String,java.lang.String,java.lang.String) -> a
@@ -4530,16 +4546,15 @@ com.yagadi.enguage.sofa.Value -> com.yagadi.a.c.k:
     java.lang.String usage(com.yagadi.enguage.util.Strings) -> a
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> c
 com.yagadi.enguage.sofa.Variable -> com.yagadi.a.c.l:
+    com.yagadi.enguage.util.Audit audit -> b
     java.lang.String NAME -> a
-    char prefix -> b
+    char prefix -> c
     void set(java.lang.String,java.lang.String) -> a
     void unset(java.lang.String) -> a
     java.lang.String get(java.lang.String) -> b
     java.lang.String get(java.lang.String,java.lang.String) -> b
     boolean isSet(java.lang.String) -> c
-    com.yagadi.enguage.util.Strings deref(java.lang.String) -> d
-    com.yagadi.enguage.util.Strings deref(com.yagadi.enguage.util.Strings) -> a
-    java.lang.String interpret(com.yagadi.enguage.util.Strings) -> b
+    java.lang.String interpret(com.yagadi.enguage.util.Strings) -> a
 com.yagadi.enguage.sofa.tier2.Item -> com.yagadi.a.c.a.a:
     com.yagadi.enguage.util.Audit audit -> a
     com.yagadi.enguage.util.Strings format -> b
@@ -4571,6 +4586,7 @@ com.yagadi.enguage.util.Audit -> com.yagadi.a.d.a:
     boolean suspended -> c
     boolean on -> d
     int level -> e
+    long then -> f
     void suspend() -> a
     void resume() -> b
     void turnOff() -> c
@@ -4578,12 +4594,13 @@ com.yagadi.enguage.util.Audit -> com.yagadi.a.d.a:
     boolean isOn() -> e
     void incr() -> f
     void decr() -> g
+    long interval() -> h
     void ERROR(java.lang.String) -> a
-    void audit(java.lang.String) -> b
+    java.lang.String audit(java.lang.String) -> b
     void debug(java.lang.String) -> c
     void traceIn(java.lang.String,java.lang.String) -> a
     java.lang.String traceOut(java.lang.String) -> d
-    void traceOut() -> h
+    void traceOut() -> i
     com.yagadi.enguage.util.Strings traceOut(com.yagadi.enguage.util.Strings) -> a
     boolean traceOut(boolean) -> a
     int traceOut(int) -> a
@@ -4610,7 +4627,7 @@ com.yagadi.enguage.util.Filesystem -> com.yagadi.a.d.b:
     void moveFile(java.io.File,java.io.File) -> a
 com.yagadi.enguage.util.Number -> com.yagadi.a.d.c:
     com.yagadi.enguage.util.Audit audit -> d
-    boolean debugSwitch -> e
+    boolean debug -> e
     int idx -> f
     java.lang.String op -> g
     java.lang.String nextOp -> h
@@ -4652,30 +4669,33 @@ com.yagadi.enguage.util.Path -> com.yagadi.a.d.d:
     void push(java.lang.String) -> a
     boolean cd(java.lang.String) -> b
 com.yagadi.enguage.util.Shell -> com.yagadi.a.d.e:
-    com.yagadi.enguage.util.Audit audit -> f
-    com.yagadi.enguage.util.Strings terminators -> g
+    com.yagadi.enguage.util.Audit audit -> c
+    com.yagadi.enguage.util.Strings terminators -> d
     java.lang.String prompt -> a
     boolean aloud -> b
-    java.lang.String prog -> c
-    java.lang.String who -> d
-    java.lang.String dates -> e
+    java.lang.String prog -> e
+    java.lang.String who -> f
+    java.lang.String dates -> g
+    long then -> h
     java.lang.String interpret(com.yagadi.enguage.util.Strings) -> b
-    void terminators(com.yagadi.enguage.util.Strings) -> d
-    com.yagadi.enguage.util.Strings terminators() -> g
-    boolean isTerminator(java.lang.String) -> b
-    java.lang.String terminatorIs(com.yagadi.enguage.util.Strings) -> e
+    void terminators(com.yagadi.enguage.util.Strings) -> c
+    com.yagadi.enguage.util.Strings terminators() -> f
+    boolean isTerminator(java.lang.String) -> c
+    java.lang.String terminatorIs(com.yagadi.enguage.util.Strings) -> d
     boolean isTerminated(com.yagadi.enguage.util.Strings) -> a
-    com.yagadi.enguage.util.Strings stripTerminator(com.yagadi.enguage.util.Strings) -> f
+    com.yagadi.enguage.util.Strings stripTerminator(com.yagadi.enguage.util.Strings) -> e
     com.yagadi.enguage.util.Strings addTerminator(com.yagadi.enguage.util.Strings,java.lang.String) -> a
-    com.yagadi.enguage.util.Strings addTerminator(com.yagadi.enguage.util.Strings) -> g
-    java.lang.String prompt() -> h
-    com.yagadi.enguage.util.Shell prompt(java.lang.String) -> c
-    com.yagadi.enguage.util.Shell aloudIs(boolean) -> b
+    com.yagadi.enguage.util.Strings addTerminator(com.yagadi.enguage.util.Strings) -> f
+    java.lang.String prompt() -> g
+    com.yagadi.enguage.util.Shell prompt(java.lang.String) -> d
+    boolean isAloud() -> h
+    com.yagadi.enguage.util.Shell aloudIs(boolean) -> a
     java.lang.String name() -> i
-    com.yagadi.enguage.util.Shell name(java.lang.String) -> d
+    com.yagadi.enguage.util.Shell name(java.lang.String) -> e
     com.yagadi.enguage.util.Shell copyright(java.lang.String,java.lang.String) -> a
+    long interval() -> j
     void interpret(java.io.InputStream) -> a
-    java.util.ArrayList expandSemicolonList(com.yagadi.enguage.util.Strings) -> h
+    java.util.ArrayList expandSemicolonList(com.yagadi.enguage.util.Strings) -> g
 com.yagadi.enguage.util.Strings -> com.yagadi.a.d.f:
     com.yagadi.enguage.util.Audit audit -> b
     com.yagadi.enguage.util.Strings ellipsis -> a
@@ -4692,23 +4712,24 @@ com.yagadi.enguage.util.Strings -> com.yagadi.a.d.f:
     com.yagadi.enguage.util.Strings prepend(java.lang.String) -> b
     com.yagadi.enguage.util.Strings copyAfter(int) -> c
     com.yagadi.enguage.util.Strings copyFromUntil(int,java.lang.String) -> b
-    com.yagadi.enguage.util.Strings fromNonWS(java.lang.String) -> c
     com.yagadi.enguage.util.Strings reverse() -> b
     com.yagadi.enguage.util.Strings replace(com.yagadi.enguage.util.Strings,com.yagadi.enguage.util.Strings) -> a
     boolean contain(com.yagadi.enguage.util.Strings,java.lang.String) -> a
-    boolean contain(java.lang.String) -> d
+    boolean contain(java.lang.String) -> c
     com.yagadi.enguage.util.Strings normalise() -> c
     com.yagadi.enguage.util.Strings decap() -> d
-    boolean isCapitalised(java.lang.String) -> i
-    boolean isUpperCase(java.lang.String) -> e
-    boolean isUpperCaseWithHyphens(java.lang.String) -> f
+    boolean isCapitalised(java.lang.String) -> h
+    boolean isUpperCase(java.lang.String) -> d
+    boolean isUpperCaseWithHyphens(java.lang.String) -> e
     java.lang.String trim(java.lang.String,char) -> a
     java.lang.String triml(java.lang.String,int,char) -> a
-    java.lang.String stripQuotes(java.lang.String) -> g
+    java.lang.String stripQuotes(java.lang.String) -> f
     java.util.ArrayList divide(com.yagadi.enguage.util.Strings) -> c
     com.yagadi.enguage.util.Strings combine(java.util.ArrayList) -> a
-    java.util.ArrayList divide(java.lang.String) -> h
+    java.util.ArrayList divide(java.lang.String) -> g
+    int compareTo(com.yagadi.enguage.util.Strings) -> d
     java.lang.Object remove(int) -> remove
+    int compareTo(java.lang.Object) -> compareTo
 com.yagadi.iNeed.Assets -> com.yagadi.iNeed.a:
     com.yagadi.enguage.util.Audit audit -> a
     java.lang.String stringFromFileOrAsset(android.content.res.AssetManager,java.lang.String) -> a
@@ -4732,9 +4753,9 @@ com.yagadi.iNeed.MainActivity -> com.yagadi.iNeed.MainActivity:
     boolean verboseMode() -> h
     boolean previewMode() -> i
     boolean visualMode() -> j
-    void initHelp(boolean) -> b
-    java.lang.String helpPrompt() -> k
-    boolean vocalised() -> l
+    void initHelp() -> k
+    java.lang.String helpPrompt() -> l
+    boolean vocalised() -> m
     void onCreate(android.os.Bundle) -> onCreate
     void onDestroy() -> onDestroy
     void onPause() -> onPause
@@ -4743,9 +4764,9 @@ com.yagadi.iNeed.MainActivity -> com.yagadi.iNeed.MainActivity:
     boolean onOptionsItemSelected(android.view.MenuItem) -> onOptionsItemSelected
     void onActivityResult(int,int,android.content.Intent) -> onActivityResult
     void onInit(int) -> onInit
+    void drawScreen() -> n
+    void populateList() -> o
     void interpret(java.lang.String) -> b
-    void drawScreen() -> m
-    void populateList() -> n
     android.widget.EditText access$0(com.yagadi.iNeed.MainActivity) -> a
 com.yagadi.iNeed.MainActivity$1 -> com.yagadi.iNeed.c:
     com.yagadi.iNeed.MainActivity this$0 -> a

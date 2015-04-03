@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 
+import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Language;
 import com.yagadi.enguage.expression.Plural;
 import com.yagadi.enguage.expression.Reply;
@@ -13,13 +14,11 @@ import com.yagadi.enguage.sofa.Attributes;
 import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Number;
 import com.yagadi.enguage.util.Strings;
-//import com.yagadi.enguage.sofa.Numeric;
-
 
 public class Tags extends ArrayList<Tag> {
-	static final   long serialVersionUID = 0;
-	static private Audit audit = new Audit( "Tags" );
-	static public  boolean debug = false;
+	static final         long serialVersionUID = 0;
+	static private       Audit           audit = new Audit( "Tags" );
+	static private final boolean         debug = Enguage.detailedDebugging;
 	
 	// with postfix boilerplate:
 	// typically { [ ">>>", "name1" ], [ "/", "name2" ], [ "/", "name3" ], [ "<<<", "" ] }.
@@ -72,35 +71,39 @@ public class Tags extends ArrayList<Tag> {
 		Strings words = new Strings( str ); // correct? ...FromChars? ...NonWS?
 		String prefix = "";
 		Tag t = new Tag();
-		int i = -1;
-		while (words.size() > ++i ) {
-			//System.out.println( "  Processing word " + "\n", words.get( i ));
-			if ((1 == words.get( i ).length()) && Strings.isUpperCase( words.get( i )) && !words.get( i ).equals("I")) {
-				t.name( words.get( i ).toLowerCase( Locale.getDefault())).prefix( prefix );
+		Iterator<String> wi = words.iterator();
+		while ( wi.hasNext() ) {
+			String word = wi.next();
+			//System.out.println( "  Processing word " + "\n", word);
+			if ((1 == word.length()) && Strings.isUpperCase( word ) && !word.equals("I")) {
+				t.name( word.toLowerCase( Locale.getDefault())).prefix( prefix );
 				add( t );
 				t = new Tag();
 				prefix = new String( Tag.emptyPrefix );
-			} else if (Strings.isUpperCaseWithHyphens( words.get( i )) && !words.get( i ).equals( "I")) {
-				Strings arr = new Strings( words.get( i ), '-' );
-				int j = -1;
-				if (null != arr) while (arr.size() > ++j) {
-					arr.set( j, arr.get( j ).toLowerCase( Locale.getDefault()));
-					if (arr.size() > j+1 )
-						t.attribute( arr.get( j ), arr.get( j ));
-					else
-						t.name( arr.get( j ));
-				}
+			} else if (Strings.isUpperCaseWithHyphens( word ) && !word.equals( "I" )) { // TODO: remove "I"
+				Strings arr = new Strings( word, '-' ); // should at least be array of 1 element!
+				if (null != arr) {
+					int asz = arr.size();
+					int j = 0;
+					Iterator<String> ai = arr.iterator();
+					 while (ai.hasNext()) {
+						String subWord = ai.next().toLowerCase( Locale.getDefault());
+						if ( asz > ++j ) // 
+							t.attribute( subWord, subWord ); // non-last words in array
+						else
+							t.name( subWord ); // last word in array
+				}	}
 				t.prefix( prefix );
 				add( t );
 				t = new Tag();
 				prefix =  new String( Tag.emptyPrefix );
 			} else
-				prefix += (words.get( i ) + " ");
+				prefix += (word + " ");
 		}
 		t.prefix( prefix );
 		if (!t.isNull()) add( t );
 	}
-	/*
+	/* *************************************************************************
 	 * matchValues() coming soon...
 	 */
 	private Attribute matchedAttr( Tag t, String val ) {
@@ -137,7 +140,7 @@ public class Tags extends ArrayList<Tag> {
 		return term;
 	}
 	private boolean validListEnd( String name, ListIterator li ) { // li IS generic, ok!
-		if (li.hasNext()) {
+		/*if (li.hasNext()) {
 			//if (debug) {
 			//	String tmp = "";
 			//	while (li.hasNext()) tmp += (" " + li.next().toString()); 
@@ -146,6 +149,8 @@ public class Tags extends ArrayList<Tag> {
 			return false;
 		}
 		return true;
+		*/
+		return !li.hasNext();
 	}
 	private String getVal( Tag t, ListIterator<Tag> ti, ListIterator<String> ui) {
 		String u = "unset";
@@ -177,79 +182,6 @@ public class Tags extends ArrayList<Tag> {
 							);
 		}	}	}	}
 		return vals.toString( Strings.SPACED );
-	}
-	
-	public Attributes matchValues( Strings utterance ) {
-		//* sanity check
-		Strings  prefix = get( 0 ).prefixAsStrings();
-		if (prefix.size() > 0) {
-			//audit.audit( "sanity check:"+ prefix.get( 0 ) + ":AND:"+ utterance.get( 0 ));
-			if (!prefix.get( 0 ).equalsIgnoreCase( utterance.get( 0 ) ))
-				return null;
-		}
-		// */
-		/* We need to be able to extract:
-		 * NAME="value"				... <NAME/>
-		 * NAME="some value"		... <NAME phrased="phrased"/>
-		 * NAME="68"                ... <NAME numeric='numeric'/>
-		 * ???NAME="an/array/or/list"	... <NAME array="array"/>
-		 * ???NAME="value one/value two/value three" <NAME phrased="phrased" array="array"/>
-		 */
-		Attributes matched = null; //lazy creation
-		ListIterator<Tag>    ti = listIterator();
-		ListIterator<String> ui = utterance.listIterator();
-		
-		//if (debug) audit.traceIn( "matchValues", "'"+ toLine() +"'" ); // +"', a =>'"+Strings.toString( sa, Strings.SPACED) +"'" );
-		Tag readAhead = null;
-		// step thru' [..., "pref"+<pattern/>, ...] && [..., "pref", "value", ...] together
-		while ( ti.hasNext() && ui.hasNext() ) {
-			Tag t = (readAhead != null) ? readAhead : ti.next();
-			readAhead = null;
-			if (null == (ui = matchBoilerplate( t.prefixAsStrings(), ui ))) { // ...match prefix
-				//if (debug) audit.traceOut("prefix mismatch:"+ (!ti.hasNext() ? "LENGTH" : null == t ? "NULL" : t.prefix()));
-				return null;
-				
-			} else if (!ui.hasNext() && t.name().equals( "" )) { // end of array on null (end?) tag...
-				// ...don't move ai on: !ai & we're finished, !NAME(ti) & check ai with next tag
-				//if (debug) audit.audit( "Tags.matchValues():EOU && blankTag("+ t.toString() +") -- read over empty tag" );
-				if (ti.hasNext()) readAhead = ti.next();
-				
-			} else if (ui.hasNext() && !t.name().equals( "" )) { // do these names match?
-				String val = null;
-				if (t.attribute( Tag.numeric ).equals( Tag.numeric )) {
-					
-					if (null == (val = doNumeric( t, ui ))) 
-						//if (debug) audit.traceOut( "non-numeric" );
-						return null;
-					
-				} else if ( null == invalidTagReason( t, ui ) ) {
-					//if (debug) audit.traceOut( "invalid:"+ reason );
-					return null;
-				} else {
-					val = getVal( t, ti, ui );
-				}
-					
-				// ...add value
-				if (null == matched) matched = new Attributes();
-				matched.add( matchedAttr( t, val )); // remember what it was matched with!
-				
-				//if (debugSwitch) audit.debug("checking postfix boilerplate:"+ t.postfix() +":"+ (ui.hasNext()?u:"UEND") +":" );
-				if (null == (ui = matchBoilerplate( t.postfixAsStrings(), ui ))) {
-					//if (debug) audit.traceOut( "postfix mismatch:"+ t.postfix() );
-					return null;
-		}	}	}
-		
-		if (!validListEnd(      "tags", ti )) {
-			//if (debug) audit.traceOut();
-			return null;
-		}
-		if (!validListEnd( "utterance", ui )) {
-			//if (debug) audit.traceOut();
-			return null;
-		}
-		
-		//if (debug) audit.traceOut( "matched => "+ (matched==null ? "no values" : matched.toString()));
-		return null == matched ? new Attributes() : matched;
 	}
 	private String invalidTagReason( Tag t, ListIterator<String> ui  ) {
 		String rc = "";
@@ -287,6 +219,80 @@ public class Tags extends ArrayList<Tag> {
 	}
 	
 	
+	public Attributes matchValues( Strings utterance ) {
+		//* sanity check
+		Strings  prefix = get( 0 ).prefixAsStrings();
+		if (prefix.size() > 0) {
+			if (!prefix.get( 0 ).equalsIgnoreCase( utterance.get( 0 ) )) {
+				if (debug) audit.audit( "matchValues():insanity:"+ prefix.get( 0 ) + ":AND:"+ utterance.get( 0 ));
+				return null;
+		}	}
+		// */
+		/* We need to be able to extract:
+		 * NAME="value"				... <NAME/>
+		 * NAME="some value"		... <NAME phrased="phrased"/>
+		 * NAME="68"                ... <NAME numeric='numeric'/>
+		 * ???NAME="an/array/or/list"	... <NAME array="array"/>
+		 * ???NAME="value one/value two/value three" <NAME phrased="phrased" array="array"/>
+		 */
+		Attributes matched = null; //lazy creation
+		ListIterator<Tag>    ti = listIterator();           // [ 'this    is    a   <test/>' ]
+		ListIterator<String> ui = utterance.listIterator(); // [ "this", "is", "a", "test"   ]
+		
+		if (debug) audit.traceIn( "matchValues", "'"+ toLine() +"'" ); // +"', a =>'"+Strings.toString( sa, Strings.SPACED) +"'" );
+		Tag readAhead = null;
+		// step thru' [..., "pref"+<pattern/>, ...] && [..., "pref", "value", ...] together
+		while ( ti.hasNext() && ui.hasNext() ) {
+			Tag t = (readAhead != null) ? readAhead : ti.next();
+			readAhead = null;
+			if (null == (ui = matchBoilerplate( t.prefixAsStrings(), ui ))) { // ...match prefix
+				if (debug) audit.traceOut("prefix mismatch:"+ (!ti.hasNext() ? "LENGTH" : null == t ? "NULL" : t.prefix()));
+				return null;
+				
+			} else if (!ui.hasNext() && t.name().equals( "" )) { // end of array on null (end?) tag...
+				// ...don't move ai on: !ai & we're finished, !NAME(ti) & check ai with next tag
+				//if (debug) audit.audit( "Tags.matchValues():EOU && blankTag("+ t.toString() +") -- read over empty tag" );
+				if (ti.hasNext()) readAhead = ti.next();
+				
+			} else if (ui.hasNext() && !t.name().equals( "" )) { // do these names match?
+				String val = null;
+				if (t.attribute( Tag.numeric ).equals( Tag.numeric )) {
+					
+					if (null == (val = doNumeric( t, ui ))) {
+						if (debug) audit.traceOut( "non-numeric" );
+						return null;
+					}
+					
+				} else if ( null == invalidTagReason( t, ui ) ) {
+					if (debug) audit.traceOut( "invalidTagReason" );
+					return null;
+				} else {
+					val = getVal( t, ti, ui );
+				}
+					
+				// ...add value
+				if (null == matched) matched = new Attributes();
+				matched.add( matchedAttr( t, val )); // remember what it was matched with!
+				
+				if (null == (ui = matchBoilerplate( t.postfixAsStrings(), ui ))) {
+					if (debug) audit.traceOut( "postfix mismatch:"+ t.postfix() );
+					return null;
+		}	}	}
+		
+		if (!validListEnd(      "tags", ti )) {
+			if (debug) audit.traceOut();
+			return null;
+		}
+		if (!validListEnd( "utterance", ui )) {
+			if (debug) audit.traceOut();
+			return null;
+		}
+		
+		if (debug) audit.traceOut( "matched => "+ (matched==null ? "no values" : matched.toString()));
+		return null == matched ? new Attributes() : matched;
+	}
+
+	
 	// --- test code...
 	static String
 			prefix = "what is",
@@ -303,7 +309,6 @@ public class Tags extends ArrayList<Tag> {
 
 	public static void main(String args[]) {
 		Audit.turnOn();
-		debug = true;
 		Tags ta = new Tags();
 		Tag t = new Tag( prefix + " ", "X", postfix ).attribute( Tag.numeric, Tag.numeric );
 		ta.add( t );

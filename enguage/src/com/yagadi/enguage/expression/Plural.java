@@ -1,6 +1,8 @@
 package com.yagadi.enguage.expression;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.TreeMap;
 
 import com.yagadi.enguage.util.Audit;
 import com.yagadi.enguage.util.Shell;
@@ -10,11 +12,12 @@ public class Plural {
 	static Audit audit = new Audit( "Plural" );
 	public static final String NAME = "plural";
 	
-	private static ArrayList<String> singularExceptions = new ArrayList<String>();
-	private static ArrayList<String> pluralExceptions   = new ArrayList<String>();
+	// these hold full exceptions, not endings e.g. "colloquial" -> "colloquia"
+	private static TreeMap<String,String> singularExceptions = new TreeMap<String,String>();
+	private static TreeMap<String,String>   pluralExceptions = new TreeMap<String,String>();
 	static public void addException( String s, String p ) {
-		singularExceptions.add( s );
-		pluralExceptions.add( p );
+		singularExceptions.put( s, p );
+		pluralExceptions.put( p, s );
 	}
 	
 	private static ArrayList<String> singularEndings = new ArrayList<String>();
@@ -26,12 +29,15 @@ public class Plural {
 	
 	static public boolean isPlural(String p ) {
 		// first check exceptions
-		if (-1 != pluralExceptions.indexOf( p )) return true;
+		if (pluralExceptions.containsKey( p )) return true;
+		
 		// then the rules
-		int i, len = p.length();
-		for (i=0; i< pluralEndings.size(); i++) { 
-			int engingLen = pluralEndings.get( i ).length();
-			if (len>=engingLen && p.substring( len-engingLen ).equals( pluralEndings.get( i ) ))
+		int len = p.length();
+		Iterator<String> pi = pluralEndings.iterator();
+		while (pi.hasNext()) {
+			String pluralEnding = pi.next();
+			int engingLen = pluralEnding.length();
+			if (len>=engingLen && p.substring( len-engingLen ).equals( pluralEnding ))
 				return true;
 		}
 		
@@ -43,16 +49,23 @@ public class Plural {
 		return false;
 	}
 	static public String singular( String p ) {
-		int i, len = p.length();
 		// check if already singular
 		if (!isPlural( p )) return p;
+		
 		// check if it is an exception
-		if (-1 != (i = pluralExceptions.indexOf( p ))) return singularExceptions.get( i );
+		String tmp;
+		if (null != (tmp = pluralExceptions.get( p ))) return tmp;
+		
 		// check endings
-		for (i=0; i< pluralEndings.size(); i++) { 
-			int engingLen = pluralEndings.get( i ).length();
-			if (len>=engingLen && p.substring( len-engingLen ).equals( pluralEndings.get( i ) )) 
-				return p.substring( 0, len-engingLen ) + singularEndings.get( i );
+		int len = p.length();
+		Iterator<String> pi =   pluralEndings.iterator(),
+		                 si = singularEndings.iterator();
+		while (pi.hasNext()) { // pi and si are of equal length
+			String   pluralEnding = pi.next(),
+			       singularEnding = si.next();
+			int engingLen = pluralEnding.length();
+			if (len>=engingLen && p.substring( len-engingLen ).equals( pluralEnding )) 
+				return p.substring( 0, len-engingLen ) + singularEnding;
 		}
 		// single s as plural -- can this be a rule too?
 		if (  len>=1 && p.substring( len-1 ).equals(  "s" )
@@ -63,22 +76,29 @@ public class Plural {
 		return p; // already singular
 	}
 	static public String plural( String s ) {
-		int i, len = s.length();
 		// already plural
 		if (isPlural( s )) return s;
+		
 		// check if it is an exception
-		if (-1 != (i = singularExceptions.indexOf( s ))) return pluralExceptions.get( i );
+		String tmp;
+		if (null != (tmp = singularExceptions.get( s ))) return tmp;
+		
 		// check endings
-		for (i=0; i< singularEndings.size(); i++) {
-			int engingLen = singularEndings.get( i ).length();
-			if (len>=engingLen && s.substring( len-engingLen ).equals( singularEndings.get( i ) )) 
-				return s.substring( 0, len-engingLen ) + pluralEndings.get( i );
+		int len = s.length();
+		Iterator<String> pi =   pluralEndings.iterator(),
+		                 si = singularEndings.iterator();
+		while (pi.hasNext()) {
+			String   pluralEnding = pi.next(),
+			       singularEnding = si.next();
+			int engingLen = singularEnding.length();
+			if (len>=engingLen && s.substring( len-engingLen ).equals( singularEnding )) 
+				return s.substring( 0, len-engingLen ) + pluralEnding;
 		}
 		if (s.length() == 1) return s;
 		return s + "s"; // rough and ready!
 	}
 	public static String ise( int i, String s ) {
-		return i==1 ? /*Plural.singular( s )*/ s : Plural.plural( s );
+		return i==1 ? Plural.singular( s ) : Plural.plural( s );
 	}
 	public static Strings ise( Strings s ) {
 		boolean pl = false;

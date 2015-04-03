@@ -1,8 +1,0 @@
-On         "a test", reply "1st".
-On "this is a test", reply "2nd".
-On "this is a TESTOFTAG", reply "3rd".
-On "this is a PHRASE-TEST", reply "4th".
-On "this is PHRASE-TEST", reply "5th".
-On "this Y  PHRASE-TEST", reply "6th".
-On "this PHRASE-TESTISA", reply "7th".
-#On "PHRASE-THISISSATEST", reply "8th". -- this would swallow debug show, necessary for complexity test

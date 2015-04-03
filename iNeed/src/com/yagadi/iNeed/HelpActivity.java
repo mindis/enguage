@@ -9,11 +9,11 @@
  */
 package com.yagadi.iNeed;
 
-import com.yagadi.enguage.concept.Repertoire;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.ScrollView;
+
+import com.yagadi.enguage.concept.Autopoiesis;
 
 public class HelpActivity extends Activity {
 	//static private Audit audit = new Audit( "HelpActivity" );
@@ -25,7 +25,7 @@ public class HelpActivity extends Activity {
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.help_layout );
-		setTitle( Repertoire.lastLoaded() +": Help");
+		setTitle( Autopoiesis.concept() +": Help");
 		
 		//refillHelpScrollArea();
 		helpScrollArea = (ScrollView)findViewById( R.id.helpScrollView );

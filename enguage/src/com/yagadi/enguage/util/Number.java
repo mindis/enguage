@@ -2,6 +2,7 @@ package com.yagadi.enguage.util;
 
 import java.util.ListIterator;
 
+import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.expression.Reply;
 
 public class Number {
@@ -16,7 +17,7 @@ public class Number {
 	static private Audit audit = new Audit( "Number" );
 	static public final String NotANumber = "NaN";
 	
-	static private boolean debugSwitch = false;
+	static private boolean debug = Enguage.numericDebugging;
 	
 	// ===== LtoR Number parsing 
 	/* {}=repeating 0..n, []=optional
@@ -36,7 +37,7 @@ public class Number {
 	//retrieves an op from the array and adjusts idx appropriately
 	private String getOp() {
 		if (!nextOp.equals( "" )) {
-			if (debugSwitch) audit.debug( "getting   SAVED op "+ nextOp );
+			if (debug) audit.debug( "getting   SAVED op "+ nextOp );
 			op = nextOp;
 			nextOp = "";
 		} else if (idx >= representamen.size() ){
@@ -46,13 +47,13 @@ public class Number {
 			op = representamen.get( idx++ );
 			if (idx < representamen.size() && op.equals( "divided" ))
 				op +=(" "+representamen.get( idx++ )); // "by"?
-			if (debugSwitch) audit.debug( "getting NEXT op "+ op );
+			if (debug) audit.debug( "getting NEXT op "+ op );
 		}
 		return op;
 	}
 	//retrieves a number from the array and adjusts idx appropriately
 	private Float getNumber() {
-		if (debugSwitch) audit.traceIn( "getNumber", "idx="+ idx +", array=["+representamen.toString( Strings.CSV )+"]");
+		if (debug) audit.traceIn( "getNumber", "idx="+ idx +", array=["+representamen.toString( Strings.CSV )+"]");
 		String sign="+";
 		String got = representamen.get( idx );
 		if (got.equals( "plus" )) {
@@ -84,41 +85,41 @@ public class Number {
 				number += representamen.get( idx++ );
 		}	}
 		Float rc = Float.NaN;
-		if (debugSwitch) audit.debug( "parsing:"+ sign +"/"+number +":" );
+		if (debug) audit.debug( "parsing:"+ sign +"/"+number +":" );
 		try { rc =  Float.parseFloat( sign+number ); } catch (Exception e) {}
-		if (debugSwitch) audit.traceOut( rc );
+		if (debug) audit.traceOut( rc );
 		return rc;
 	}
 	/* doPower( 3.0, [ "+", "2" ...]) => "3"
 	 * doPower( 3.0, [ "squared", "*", "2" ...]) => "9"
 	 */
 	private Float doPower(Float value) {
-		if (debugSwitch) audit.traceIn( "doPower", op +" ["+representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
+		if (debug) audit.traceIn( "doPower", op +" ["+representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
 		if (value != Float.NaN) {
 			// to process here we need an op and a value
 			if (idx<representamen.size() || !nextOp.equals("")) {
 				op = getOp();
-				if (debugSwitch) audit.debug( "power:"+ op +":" );
+				if (debug) audit.debug( "power:"+ op +":" );
 				if (op.equals( "cubed" )) {
-					if (debugSwitch) audit.debug( "cubing: "+ value );
+					if (debug) audit.debug( "cubing: "+ value );
 					op = ""; // consumed!
 					value = value * value * value;
 				} else if (op.equals( "squared" )) {
-					if (debugSwitch) audit.debug( "squaring: "+ value );
+					if (debug) audit.debug( "squaring: "+ value );
 					op = ""; // consumed!
 					value *= value;
 				} else {
-					if (debugSwitch) audit.debug( "saving (non-)power op: "+ op );
+					if (debug) audit.debug( "saving (non-)power op: "+ op );
 					nextOp = op;
 		}	}	}
-		if (debugSwitch) audit.traceOut( value );
+		if (debug) audit.traceOut( value );
 		return value;
 	}
 	private Float doPower() {
-		if (debugSwitch) audit.traceIn( "doPower", op +" ["+representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
+		if (debug) audit.traceIn( "doPower", op +" ["+representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
 		// to process here we need an op and a value
 		Float f = doPower( getNumber());
-		if (debugSwitch) audit.traceOut( f );
+		if (debug) audit.traceOut( f );
 		return f; 
 	}
 	/*
@@ -130,7 +131,7 @@ public class Number {
 	 * Theres a bug here in that op and postOp should be dealt with in their own methods.
 	 */
 	private Float doProduct(Float value) {
-		if (debugSwitch) audit.traceIn( "doProduct", op +" ["+ representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
+		if (debug) audit.traceIn( "doProduct", op +" ["+ representamen.copyAfter( idx-1 ).toString( Strings.CSV )+"]" );
 		if (value != Float.NaN) {
 			// to process here we need an op and a value
 			while( idx < representamen.size() ) { // must be at least two array items, e.g. ["*", "2", ...
@@ -157,14 +158,14 @@ public class Number {
 				value = doPower( value );
 		}	}
 
-		if (debugSwitch) audit.traceOut( value );
+		if (debug) audit.traceOut( value );
 		return value;
 	}
 	private Float doProduct() {
-		if (debugSwitch) audit.traceIn( "doProduct", op +" ["+representamen.copyAfter( idx-1 ).toString(  Strings.CSV )+"]" );
+		if (debug) audit.traceIn( "doProduct", op +" ["+representamen.copyAfter( idx-1 ).toString(  Strings.CSV )+"]" );
 		// to process here we need an op and a value
 		Float f = doProduct( doPower() );
-		if (debugSwitch) audit.traceOut( f );
+		if (debug) audit.traceOut( f );
 		return f;
 	}
 	/*
@@ -172,7 +173,7 @@ public class Number {
 	 * term([ "1", "+", "2", "*", "3" ]) => 7
 	 */
 	private Float doTerms() {
-		if (debugSwitch) audit.traceIn( "doTerms", op +", ["+ representamen.copyAfter( idx-1 ).toString(  Strings.CSV )+"]" );
+		if (debug) audit.traceIn( "doTerms", op +", ["+ representamen.copyAfter( idx-1 ).toString(  Strings.CSV )+"]" );
 		Float value = doProduct();
 		if (value != Float.NaN) {
 			//if (localDebugSwitch) audit.debug( "initial term = "+ value );
@@ -203,12 +204,12 @@ public class Number {
 			}
 			if (idx < representamen.size()) audit.ERROR( idx +" not end of array, on processing: "+ representamen.get( idx ));
 		}
-		if (debugSwitch) audit.traceOut( value );
+		if (debug) audit.traceOut( value );
 		return value;
 	}
 	// ----------------
 	public static String floatToString( Float f ) {
-		if (debugSwitch) audit.traceIn( "floatToSting", f.toString() );
+		if (debug) audit.traceIn( "floatToSting", f.toString() );
 		String value;
 		if (f == Float.NaN)
 			value = Number.NotANumber;
@@ -222,7 +223,7 @@ public class Number {
 			if (-1 != (i = value.indexOf( "." )))
 				value = value.substring( 0, i ) + " point " + Reply.spell( value.substring( i+1 )); 
 		}
-		if (debugSwitch) audit.traceOut( value );
+		if (debug) audit.traceOut( value );
 		return value;
 	}
 	// ----------------
@@ -266,66 +267,76 @@ public class Number {
 	
 	public String toString() { return representamen.toString( Strings.SPACED ); }
 	public String valueOf() {
-		if (debugSwitch) audit.traceIn( "valueOf", "("+ representamen.toString() +")");
+		if (debug) audit.traceIn( "valueOf", "("+ representamen.toString() +")");
 		String rc;
-		if (representamen.size() == 0)
+		if (representamen.size() == 0) {
+			if (debug) audit.debug( "Number.valueOf(): rep size==0" );
 			rc = Number.NotANumber;
+		} else if (representamen.equals( new Strings( "some" )))
+			rc = "some";
+		else if (representamen.equals( new Strings( "a few" )))
+			rc = "a few";
+		else if (representamen.equals( new Strings( "a couple" )))
+			rc = "a couple";
 		else {
 			idx = 0;
 			try {
 				rc = floatToString( doTerms());
 				if (!rc.equals(Number.NotANumber))
 					rc = (relative ? positive ? "+" + (exact ? "=" : "~") : "-" + (exact ? "=" : "~") : "") + rc;
+				else
+					if (debug) audit.ERROR( "Number.valueOf(): floatToString() returns NaN" );
+				
 			} catch (Exception nfe) {
-				if (debugSwitch) audit.ERROR( "Number.valueOf():"+ nfe.toString());
+				if (debug) audit.ERROR( "Number.valueOf():"+ nfe.toString());
 				rc = Number.NotANumber;
 		}	}
-		if (debugSwitch) audit.traceOut( rc ); // if (localDebugSwitch) audit.traceOut( tmp );
+		if (debug) audit.traceOut( rc ); // if (localDebugSwitch) audit.traceOut( tmp );
 		return rc; // if (localDebugSwitch) audit.traceOut( tmp );
 	}
 
 	// ===== getNumber(): a Number Factory
 	static private int postOpLen( ListIterator<String> si ) {
-		if (debugSwitch) audit.traceIn( "postOpLen", "");
+		if (debug) audit.traceIn( "postOpLen", "");
 		if (si.hasNext()) {
 			String s = si.next();
-			if (debugSwitch) audit.debug( "just read: "+ s );
+			if (debug) audit.debug( "just read: "+ s );
 			if (s.equals( "all" ) && si.hasNext()) {
 				s = si.next();
-				if (debugSwitch) audit.debug( "just read: "+ s );
+				if (debug) audit.debug( "just read: "+ s );
 				if (s.equals( "squared" ) || s.equals( "cubed" )) {
 					si.previous();
 					si.previous();
-					if (debugSwitch) audit.traceOut( 2 );
+					if (debug) audit.traceOut( 2 );
 					return 2;
 			}	}
 			if (	s.equals(   "cubed" )
 				 || s.equals( "squared" ) ) {
 				si.previous();
-				if (debugSwitch) audit.traceOut( 1 ); 
+				if (debug) audit.traceOut( 1 ); 
 				return 1;
 			}
 			// non of these -- so put it back
-			if (debugSwitch) audit.audit( "Putting back "+ s );
+			if (debug) audit.audit( "Putting back "+ s );
 			si.previous();
 		}
-		if (debugSwitch) audit.traceOut( 0 ); 
+		if (debug) audit.traceOut( 0 ); 
 		return 0;
 	}
 	static private int opLen( ListIterator<String> si ) { // too simplistic?
-		if (debugSwitch) audit.traceIn( "opLen", "" );
+		if (debug) audit.traceIn( "opLen", "" );
 		if (si.hasNext()) {
 			String op = si.next();
-			if (debugSwitch) audit.debug( "--found op:"+ op );
+			if (debug) audit.debug( "--found op:"+ op );
 			if (   op.equals( "times"      )
 			    || op.equals( "multiplied" ) 
 			    || op.equals( "divided"    )) { 
 				if (si.hasNext()) {
 					op = si.next();
-					if (debugSwitch) audit.debug( "found Op:"+ op );
+					if (debug) audit.debug( "found Op:"+ op );
 					if (op.equals( "by" )) {
 						si.previous();
-						if (debugSwitch) audit.traceOut( 2 );
+						if (debug) audit.traceOut( 2 );
 						return 2;
 					}
 					// none of these so put it back
@@ -337,15 +348,15 @@ public class Number {
 				    op.equals( "*" ) || op.equals( "times" ) ||
 				    op.equals( "/" )                            )
 			{
-				if (debugSwitch) audit.debug( "found op:"+ op );
+				if (debug) audit.debug( "found op:"+ op );
 				si.previous();
-				if (debugSwitch) audit.traceOut( 1 );
+				if (debug) audit.traceOut( 1 );
 				return 1;
 			}
 			// none of these so put it back
 			si.previous();
 		}
-		if (debugSwitch) audit.traceOut( 0 );
+		if (debug) audit.traceOut( 0 );
 		return 0;
 	}
 	static public boolean isNumeric( String s ) {
@@ -359,13 +370,13 @@ public class Number {
 		/* this could do with tidying...!
 		 * this is a tree-like structure.
 		 */
-		if (debugSwitch)
+		if (debug)
 			audit.traceIn( "getNumber", (si!=null ? si.hasNext() ? "stream":"empty":"null") );
 		Number number = new Number();
 		String token = si.next();
-		if (debugSwitch) audit.debug( "first token is "+ token );
+		if (debug) audit.debug( "first token is "+ token );
 		if (token.equals("a") || token.equals("an")) {
-			if (debugSwitch) audit.debug( "Numeric is a <x singular='singular'>" );
+			if (debug) audit.debug( "Numeric is a <x singular='singular'>" );
 			number.relative( false );
 			number.positive( true );
 			number.exact( true );
@@ -385,7 +396,7 @@ public class Number {
 		}
 		if (token.equals("some")) { // prob !singular
 			number.exact( false );
-			number.append( "3" );
+			number.append( "some" );
 			if (si.hasNext()) token = si.next();
 		}
 		if (token.equals("few")) { // prob !singular
@@ -414,7 +425,7 @@ public class Number {
 		}*/
 		if (isNumeric( token )) {
 			// we've read a numeral, so....
-			if (debugSwitch) audit.debug( "yes, "+ token +" is numeric" );
+			if (debug) audit.debug( "yes, "+ token +" is numeric" );
 			number.exact( true );
 			// "another" -> (+=) 1
 			if (number.representamen.size() == 0) {// != "another"
@@ -424,25 +435,25 @@ public class Number {
 			
 			// ...read into the array a succession of ops and numerals 
 			while (si.hasNext()) {
-				if (debugSwitch) audit.debug( "in list reading terms" );
+				if (debug) audit.debug( "in list reading terms" );
 				int opLen, postOpLen;
 				while (0 < (postOpLen = postOpLen( si ))) { // ... all squared
-					if (debugSwitch) audit.debug("postOpLen="+ postOpLen );
+					if (debug) audit.debug("postOpLen="+ postOpLen );
 					for (int j=0; j<postOpLen; j++) {
 						if (si.hasNext()) {
 							String s = si.next();
-							if (debugSwitch) audit.debug( "found POP:"+ s );
+							if (debug) audit.debug( "found POP:"+ s );
 							number.append( s );
 					}	}
 					//os += postOpLen;
 				} // optional, so no break if not found
 				if (0 < (opLen = opLen( si ))) { // ... * 4
 					//int tmpOs = os; // remember where we started...
-					if (debugSwitch) audit.debug("opLen="+ opLen );
+					if (debug) audit.debug("opLen="+ opLen );
 					for (int j=0; j<opLen; j++) {
 						if (si.hasNext()) {
 							String s = si.next();
-							if (debugSwitch) audit.debug( "found OP:"+ s );
+							if (debug) audit.debug( "found OP:"+ s );
 							number.append( s );
 					}	}
 					//os += opLen;
@@ -450,7 +461,7 @@ public class Number {
 					if (si.hasNext()) {
 						String tmp = token = si.next();
 						if (isNumeric( tmp )) {
-							if (debugSwitch) audit.debug( "found numeric: "+ tmp );
+							if (debug) audit.debug( "found numeric: "+ tmp );
 							number.append( tmp );
 							//os ++;
 							//if (si.hasNext()) token = si.next();
@@ -467,21 +478,21 @@ public class Number {
 					break;  // if not found
 				}
 		}	}
-		if (debugSwitch) audit.audit( ">>>token is "+ token );
+		if (debug) audit.audit( ">>>token is "+ token );
 		if (si.hasNext() && token.equals("more")) {
-			if (debugSwitch) audit.debug( "found MORE" );
+			if (debug) audit.debug( "found MORE" );
 			number.relative( true );
 			number.positive( true );
 			if (si.hasNext()) token = si.next();
 		} else if (si.hasNext() && token.equals("less")) {
-			if (debugSwitch) audit.debug( "found LESS" );
+			if (debug) audit.debug( "found LESS" );
 			number.relative( true );
 			number.positive( false );
 			if (si.hasNext()) token = si.next();
 		} else { //not more or less, put it back
 			si.previous();
 		}
-		if (debugSwitch) {
+		if (debug) {
 			String s1 = number.valueOf(), s2 =number.toString();
 			audit.traceOut( "number=["+ s2 +"], with a value of "+ s1 );
 		}
@@ -528,6 +539,8 @@ public class Number {
 		anotherTest( new Strings("i need another  8 cups of coffee").listIterator());
 		anotherTest( new Strings("i need another  9 cups of coffee").listIterator());
 		anotherTest( new Strings("i need another 10 cups of coffee").listIterator());
+		
+		anotherTest( new Strings("i need some coffee").listIterator());
 		
 		audit.audit( "more/less test:");
 		si = new Strings("i need 6 more cups of coffee").listIterator();

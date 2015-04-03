@@ -1,5 +1,6 @@
 package com.yagadi.enguage.sofa.tier2;
 
+import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.concept.Tag;
 import com.yagadi.enguage.concept.Tags;
 import com.yagadi.enguage.expression.Reply;
@@ -11,9 +12,9 @@ import com.yagadi.enguage.util.Shell;
 import com.yagadi.enguage.util.Strings;
 
 public class List extends Value {
-	static private Audit audit = new Audit( "List" );
-	public static final String NAME = "list";
-	private static boolean debug = false;
+	private static       Audit   audit = new Audit( "List" );
+	public  static final String   NAME = "list";
+	private static       boolean debug = Enguage.runtimeDebugging;
 	
 	// constructors
 	public List( String e, String a ) { super( e, a ); }
@@ -59,10 +60,12 @@ public class List extends Value {
 		for (Tag t : new Tag( getAsString() ).content() ) {  // go though the file
 			itemNum++; // note where we are
 			if (( exact && t.equals(  item.tag() ))
-			 ||	(!exact && t.matchesContent( item.tag() )))
+			 ||	(!exact && t.matchesContent( item.tag() ))) {
+				if (debug) audit.traceOut( "FOUND" );
 				return itemNum; // found
+			}
 		}
-		if (debug) audit.traceOut( "NOT FOUND" );
+		if (debug) audit.traceOut( "NOT found" );
 		return -1; // not found
 	}
 	private int count( Item item, boolean exact ) { // e.g. ["cake slices","2"]
@@ -112,7 +115,7 @@ public class List extends Value {
 		return rc;
 	}
 	private String add( Item item ) { // adjusts attributes, e.g. quantity
-		if (debug) audit.audit( "item created is:"+ item.toXml());
+		if (debug) audit.traceIn( "add", "item created is:"+ item.toXml());
 		String rc = Shell.FAIL;
 		Tag list = new Tag( getAsString() );
 		
@@ -120,7 +123,14 @@ public class List extends Value {
 		// if (isText( list )) list = convertToTags( list );
 		
 		list.name( "list" ); // name it just in case we've a blank file.
-		int n = find( item, false );
+		
+		/* Do we want an exact match? I had set this to exact match???
+		 * We need to say "i need a coffee" and "i need a cup of coffee"
+		 * SPECIALISATION!
+		 * TODO: need an "I also need ..." also situation TO add
+		 * coffee and a cup of coffee.
+		 */
+		int n = find( item, false ); // exact match? No!
 		if (-1 == n) {
 			// not found so add whole item.
 			if (!item.tag().attribute( "quantity" ).equals( "0" )) {
@@ -135,10 +145,13 @@ public class List extends Value {
 				list.content( item.tag() );
 				rc = item.toString();
 			}
-		} else {
+		} else { // found so update item...
+			// does this remove detail too?
+			// TODO: need a GENERALISATION just: I just need coffee (from I need a cup of coffee)
 			Tag tmp = list.removeContent( n );
 			tmp.updateAttributes( item.tag() );
-			if (!tmp.attribute( "quantity" ).equals( "0" )) {
+			if (!tmp.attribute( "quantity" ).equals( "0" )) { // only put back if not 0
+				tmp.content( item.tag().content() ); // will replace crisp with crisps
 				list.content( n, tmp );
 				item.tag( tmp );
 				rc = item.toString();
@@ -149,7 +162,7 @@ public class List extends Value {
 		return rc;
 	}
 	public boolean remove( Item item, boolean exact ) { // removes an item
-		audit.traceIn("remove", "item="+ item.toString() +", exact="+ (exact?"T":"F"));
+		if (debug) audit.traceIn("remove", "item="+ item.toXml() +", exact="+ (exact?"T":"F"));
 		Tag list = new Tag( getAsString()); // was get()
 
 		// this is only for conversion between v1.1 and v1.2
@@ -158,8 +171,8 @@ public class List extends Value {
 		list.name( "list" ); // name it just in case we've a blank file.
 		int removed = exact ? list.remove( item.tag() ) : list.removeMatches( item.tag() );
 		
-		set( list.toString() );
-		audit.traceOut( removed > 0 );
+		if (removed > 0) set( list.toString() );
+		if (debug) audit.traceOut( removed > 0 );
 		return removed > 0;
 	}
 	static private Strings conjunctionFudge( String param ) {
@@ -199,7 +212,7 @@ public class List extends Value {
 		String rc = Shell.FAIL;
 		if (debug) audit.traceIn( "interpret", sa.toString());
 		String cmd = sa.get( 0 );
-			
+		
 		List list = new List( sa.get( 1 ), sa.get( 2 ));
 		
 		if (cmd.equals( "delete" )) {
@@ -214,10 +227,9 @@ public class List extends Value {
 			Strings params = sa.copyAfter( 2 );
 			if (sa.size() == 3) {
 				
-				if (cmd.equals("get")) {
-					if (debug) audit.audit("got:"+ list.get().toString());
+				if (cmd.equals("get"))
 					rc = list.get().toString( Reply.andListFormat());
-				}
+				
 			} else {
 				Strings rca = new Strings();
 				if (debug) audit.debug( "params was>"+ params +"<");
@@ -230,20 +242,35 @@ public class List extends Value {
 				 */
 				params = conjunctionFudge( params.remove( 0 )).append( params );
 				/* Then remove ^^^this^^^ code on producing optional parameters.
-				*/
+				 */
 				if (debug) audit.debug( "params are:"+ params.toString());
 				
 				for (Strings itemParams : params.divide( "&" )) {
 					Item item = new Item( itemParams );
 					if (debug) audit.debug( "item:"+ item.toXml());
 					
-					if (cmd.equals( "containing" ) || cmd.equals( "exists" )) {
+					if (cmd.equals( "exists" )) {
 						/* 
 						 * TODO: to "list exists _user needs coffee"
 						 * return "FALSE" or "5 cups of coffee" 
 						 */
-						int lineNum = list.find( item, cmd.equals( "exists" )); // matches, NOT equals
-						if (lineNum != -1) rca.add( Integer.toString( lineNum ));
+						/* TODO
+						 * exists a & b & c + a & b => false (only if all present!)
+						 */
+						/* Applying an addition of exists:
+						 * i.e. a+b+c? with a+b =>false
+						 */
+						String lastParam = itemParams.get( itemParams.size() - 1 );
+						int lineNum = list.find( item, !(lastParam.equals( "quantity='some'" )||lastParam.equals( "quantity='any'" ))); // matches, NOT equals
+						if (lineNum != -1) {
+							//rca.add( Integer.toString( lineNum ));
+							if (rca.size() == 0) rca.add( Shell.SUCCESS );
+						} else {
+							//rca.add( Integer.toString( lineNum ));
+							rca = new Strings();
+							rca.add( Shell.FAIL );
+							break;
+						}
 						
 					} else if (cmd.equals( "quantity" )) {
 						if (debug) audit.audit("itemParams="+ itemParams.toString());
@@ -263,8 +290,7 @@ public class List extends Value {
 							item = new Item( newParams );
 							if (debug) audit.audit( "item is now"+ item.toString());
 							if (ref.equals( Reply.referencers().get( 0 ) ) // one
-								 && (
-										(1 == list.count( item,  true ) && list.remove( item,  true ))
+								 && (	(1 == list.count( item,  true ) && list.remove( item,  true ))
 									  ||(1 == list.count( item, false ) && list.remove( item, false ))
 								)	)
 								rca.add( Shell.SUCCESS );
@@ -283,6 +309,7 @@ public class List extends Value {
 						rca.add( list.get( item ).toString( Reply.andListFormat()));
 							
 				}	}
+				// some things (e.g. get) may have many values, some (e.g. exists) only one
 				rc = rca.size() == 0 ? Shell.FAIL : rca.toString( Reply.andListFormat());
 			}
 		}
@@ -297,16 +324,25 @@ public class List extends Value {
 	public static void main( String[] argv ) { // sanity check...
 		Audit.turnOn();
 		Item.format( "QUANTITY,UNIT of,,from FROM" );
+		
 		String s = List.interpret( params( "get martin needs" ));
 		audit.audit( "martin needs:"+ s );
-		s = List.interpret( params( "removeAny martin needs coffee" ));
+		s = List.interpret( params( "delete martin needs" ));
 		audit.audit( "martin needs:"+ s );
 		s = List.interpret( params( "add martin needs coffee" ));
 		audit.audit( "martin now needs:"+ s );
-		s = List.interpret( params( "add martin needs coffees quantity='2'" ));
+		s = List.interpret( params( "add martin needs milk" ));
 		audit.audit( "martin now needs:"+ s );
+		s = List.interpret( params( "add martin needs ground coffee" ));
+		audit.audit( "martin now needs:"+ s );
+		s = List.interpret( params( "add martin needs coffees quantity='2'" ));
+		audit.audit( "quant=2: martin now needs:"+ s );
 		s = List.interpret( params( "get martin needs" ));
-		audit.audit( "martin needs:"+ s );
+		audit.audit( "get list: martin needs:"+ s );
+		s = List.interpret( params( "removeAny martin needs coffee" ));
+		audit.audit( "removed any coffee: martin needs:"+ s );
+		s = List.interpret( params( "get martin needs" ));
+		audit.audit( "get list: martin needs:"+ s );
 		
 /*		List.interpret( params( "add martin needs biscuits quantity='2'" ));
 		audit.audit( "Start: added 2 biscuits ("+ s +")" );

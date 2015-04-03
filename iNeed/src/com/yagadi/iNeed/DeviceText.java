@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.yagadi.enguage.Enguage;
 import com.yagadi.enguage.concept.Repertoire;
+import com.yagadi.enguage.concept.Repertoires;
 import com.yagadi.enguage.sofa.Numeric;
 import com.yagadi.enguage.util.Audit;
 
@@ -47,9 +48,11 @@ public class DeviceText {
 	public static TextView get( Activity ctx, String name ) {
 		String s = "";
 		if (name.equals( help )) {
-			String rep = (Enguage.e == null || Enguage.signs == null) ?  "" : Enguage.signs.helpToHtml( Repertoire.def() );
+			String rep = (Enguage.e == null || Repertoires.signs == null) ?
+					"" : Repertoires.signs.helpToHtml( Repertoire.prime() );
+			
 			String app = Assets.stringFromFileOrAsset( ctx.getAssets(), name );
-			String def = Enguage.e == null || !Repertoire.defaultRepIsLoaded() ? "" :
+			String def = Enguage.e == null || !Repertoires.defaultRepIsLoaded() ? "" :
 				ctx.getString( R.string.visualHelp1 );
 			s = ctx.getString( R.string.visualHelp2 )
 					+ (rep.equals( "" ) ? ctx.getString( R.string.visualHelp4repNotLoaded ) + "<br/>" : "Basic repertoire:<br/>" + rep) + "<br/>" 

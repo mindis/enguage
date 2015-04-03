@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 
 abstract public class Shell {
 
@@ -54,6 +55,14 @@ abstract public class Shell {
 	public  String copyright() { return prog +" (c) "+ who +", "+ dates; }
 	public  Shell  copyright( String wh, String dts ) { who = wh; dates = dts; return this; }
 
+	static private long then =  new GregorianCalendar().getTimeInMillis();
+	static public  long interval() {
+		long now = new GregorianCalendar().getTimeInMillis();
+		long rc = now - then;
+		then = now;
+		return rc;
+	}
+	
 	public Shell( String name ) {
 		name( name ).prompt( "> " ).copyright( "Martin Wheatman", "2001-4, 2011-15" );
 	}
@@ -85,8 +94,10 @@ abstract public class Shell {
 							// Expand sentence here...
 							ArrayList<Strings> sentenceList = expandSemicolonList( sentence );
 							for (Strings s : sentenceList ) {
+								interval();
 								String rc = interpret( s );
-								if (aloud) System.out.println( rc );
+								if (aloud)
+									audit.audit( "Shell.interpret("+ interval() +"ms) replies >>"+ rc );
 							}
 							// ...expand sentence here.
 					}	}

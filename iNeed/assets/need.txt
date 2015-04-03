@@ -2,102 +2,104 @@
 ### I need X
 ###
 ### The latest version of this file can be found at:
-### http://www.yagadi.com/assets/iNeed.txt (c) yagadi.com, 2013-4.
+### http://www.yagadi.com/assets/need.txt (c) yagadi.com, 2013-5.
 ### 
 ####################################################
-
-On "if PHRASE-X, reply PHRASE-Y": X ; then, reply Y.
-
-#proto-list repertoire - if just Y => think="reply 'I know'"
-On "PHRASE-Y exists in X needs list", perform "list exists X needs Y".
-On "add PHRASE-Y to X needs list", perform "list add X needs Y".
 
 ####################################################
 # Third-person utterances
 ####################################################
-On "X needs PHRASE-Y":
-	if Y exists in X needs list, reply "I know";
-	if not, add Y to X needs list;
-	then, reply "ok, X needs Y".
-
-On "X does not need PHRASE-Y":
-	perform "variable set subject X";
-	perform "list remove X needs Y";
-	if not, reply "No, I do not know what you mean by Y"; # this -> Y? Y="the y" needs to be Y="any y"
-	then, reply "ok, X does not need Y".
-
-On "X does not need any PHRASE-Y":
-	perform "variable set subject X";
-	perform "list removeAny X needs Y"; # "X needs [any] Y"
-	if not, reply "No, I do not know what you mean by Y"; # this -> Y? Y="the y" needs to be Y="any y"
-	then, reply "ok, X does not need any Y".
-
-On "what does X need":
-	perform "variable set subject X";
-	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
-	perform "list get X needs";
-	if not, reply "X does not need anything";
-	then, reply "X needs ...".
-
-On "does X need PHRASE-Y":
-	perform "list exists X needs Y"; # returns 5 cups of coffee???
-	if not, reply "no, X does not need Y";
-	then, reply "yes, X needs Y". # ...then yes, X needs ...
-
-On "X has PHRASE-Y", X does not need Y.
-
-On "X has everything": perform "list delete X needs"; then, reply "ok, X does not need anything".
-
-On "X needs NUMERIC-QUANTITY PHRASE-Y":
-	perform "variable set subject X"; # subject is used in populating list;
-	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
-	perform "list exists X needs Y QUANTITY";  # check for equality with elaborates?
+On "SUBJECT needs PHRASE-OBJECT":
+	OBJECT exists in SUBJECT needs list;
 	reply "I know";
-	if not, perform "list add X needs Y QUANTITY";
-	then, reply "ok, X needs ... ".
-  
-On "X needs NUMERIC-QUANTITY UNIT of PHRASE-Y":
-	perform "variable set subject X"; # subject is used in populating list
+	if not, add OBJECT to SUBJECT needs list;
+	then, reply "ok, SUBJECT needs OBJECT".
+On "SUBJECT needs NUMERIC-QUANTITY PHRASE-OBJECT":
 	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
-	perform "list exists X needs Y QUANTITY UNIT"; # simple list check?
+	QUANTITY OBJECT exists in SUBJECT needs list;
 	reply "I know";
-	if not, perform "list add X needs Y QUANTITY UNIT";
-	then, reply "ok, X needs ...".
+	if not, add QUANTITY OBJECT to SUBJECT needs list;
+	then, reply "ok, SUBJECT needs ... ".
+On "SUBJECT needs NUMERIC-QUANTITY UNIT of PHRASE-OBJECT":
+	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
+	QUANTITY UNIT of OBJECT exists in SUBJECT needs list;
+	reply "I know";
+	if not, add QUANTITY UNIT of OBJECT to SUBJECT needs list;
+	then, reply "ok, SUBJECT needs ...".
 
-On "how many UNIT of PHRASE-Y does X need":
-	perform "variable set subject X"; # subject is used in populating list
-	perform "list quantity X needs Y UNIT";
-	then, reply "..., X needs ... UNIT of Y".
 
-On "how many PHRASE-Y does X need":
-	perform "variable set subject X"; # subject is used in populating list
-	perform "list quantity X needs Y";
-	then, reply "..., X needs ... Y".
+On "SUBJECT has PHRASE-OBJECT", SUBJECT does not need OBJECT.
 
-On "how many PHRASE-Y do I need", how many Y does _user need.
+On "SUBJECT has everything":
+	delete SUBJECT needs list;
+	then, reply "ok, SUBJECT does not need anything".
+
+On "SUBJECT does not need PHRASE-OBJECT":
+	remove OBJECT from SUBJECT needs list;
+	if not, reply "No, I do not know what you mean by OBJECT";
+	then, reply "ok, SUBJECT does not need OBJECT".
+On "SUBJECT does not need NUMERIC-QUANTITY PHRASE-OBJECT":
+	remove QUANTITY OBJECT from SUBJECT needs list;
+	if not, reply "No, SUBJECT does not need QUANTITY OBJECT";
+	then, reply "ok, SUBJECT does not need QUANTITY OBJECT".
+On "SUBJECT does not need NUMERIC-QUANTITY UNIT of PHRASE-OBJECT":
+	remove QUANTITY UNIT of OBJECT from SUBJECT needs list;
+	if not, reply "No, SUBJECT does not need QUANTITY UNIT of OBJECT";
+	then, reply "ok, SUBJECT does not need QUANTITY UNIT of OBJECT".
+On "SUBJECT does not need any PHRASE-OBJECT":
+	remove any OBJECT from SUBJECT needs list; # "SUBJECT needs [any] OBJECT"
+	if not, reply "No, SUBJECT does not need any OBJECT";
+	then, reply "ok, SUBJECT does not need any OBJECT".
+
+
+On "what does SUBJECT need":
+	perform "item set format 'QUANTITY,UNIT of,,from FROM'";
+	get SUBJECT needs list;
+	if not, reply "SUBJECT does not need anything";
+	then, reply "SUBJECT needs ...".
+
+On "does SUBJECT need PHRASE-OBJECT":
+	perform "list exists SUBJECT needs OBJECT";
+	if not, reply "no, SUBJECT does not need OBJECT";
+	then, reply "yes, SUBJECT needs OBJECT".
+On "does SUBJECT need NUMERIC-QUANTITY PHRASE-OBJECT":
+	perform "list exists SUBJECT needs OBJECT QUANTITY";
+	if not, reply "no, SUBJECT does not need QUANTITY OBJECT";
+	then, reply "yes, SUBJECT needs QUANTITY OBJECT".
+On "does SUBJECT need NUMERIC-QUANTITY UNIT of PHRASE-OBJECT":
+	perform "list exists SUBJECT needs OBJECT QUANTITY UNIT";
+	if not, reply "no, SUBJECT does not need QUANTITY UNIT of OBJECT";
+	then, reply "yes, SUBJECT needs QUANTITY UNIT of OBJECT".
+
+On "how many UNIT of PHRASE-OBJECT does SUBJECT need":
+	how many UNIT of OBJECT in SUBJECT needs list;
+	then, reply "..., SUBJECT needs ... UNIT of OBJECT".
+On "how many PHRASE-OBJECT does SUBJECT need":
+	how many OBJECT in SUBJECT needs list;
+	then, reply "..., SUBJECT needs ... OBJECT".
 
 ######################################
 # First person utterances
 ######################################
-On "I        need        PHRASE-X", _user needs X.
+On "I        need        PHRASE-OBJECT", _user needs OBJECT.
 On "help", reply "to add items to the list".
-On "get                  PHRASE-X", _user needs X.
-On "get         Y        PHRASE-X", Y needs X.
+On "get                  PHRASE-OBJECT", _user needs OBJECT.
+On "get         SUBJECT        PHRASE-OBJECT", SUBJECT needs OBJECT.
 
-On "I        have to have PHRASE-X", _user needs X.
+On "I        have to have PHRASE-OBJECT", _user needs OBJECT.
 
-On "I        have to     PHRASE-X", _user needs to X.
-On "I do not have to     PHRASE-X", _user does not need to X.
-On "I        need to     PHRASE-X", _user needs to X.
-On "I        have to get PHRASE-X", _user needs X.
-On "I        need to get PHRASE-X", _user needs X.
-On "I do not have to get PHRASE-X", _user does not need X.
-On "I do not need to get PHRASE-X", _user does not need X.
+On "I        have to     PHRASE-OBJECT", _user needs to OBJECT.
+On "I do not have to     PHRASE-OBJECT", _user does not need to OBJECT.
+On "I        need to     PHRASE-OBJECT", _user needs to OBJECT.
+On "I        have to get PHRASE-OBJECT", _user needs OBJECT.
+On "I        need to get PHRASE-OBJECT", _user needs OBJECT.
+On "I do not have to get PHRASE-OBJECT", _user does not need OBJECT.
+On "I do not need to get PHRASE-OBJECT", _user does not need OBJECT.
 
-On "I do not need        PHRASE-X", _user does not need X.
-On "I do not need any    PHRASE-X", _user does not need any X.
-On "I        have got    PHRASE-X", _user does not need X.
-On "I        have        PHRASE-X", _user does not need X.
+On "I do not need        PHRASE-OBJECT", _user does not need OBJECT.
+On "I do not need any    PHRASE-OBJECT", _user does not need any OBJECT.
+On "I        have got    PHRASE-OBJECT", _user does not need OBJECT.
+On "I        have        PHRASE-OBJECT", _user does not need OBJECT.
 On "         clear the       list", _user has everything.
 On "I        have got  everything", _user has everything.
 On "I        have      everything", _user has everything.
@@ -108,9 +110,8 @@ On                   "?", what does _user need.
 On "what  do   I   need", what does _user need.
 On "help", reply "to find out what is on the list".
 
-On "do I  need PHRASE-X", does _user need X.
+On "do I need PHRASE-OBJECT", does _user need OBJECT.
+On "how many PHRASE-OBJECT do I need", how many OBJECT does _user need.
 On "help", reply "to find out if something specific is on the list".
 
-On "We need PHRASE-X", I need X. # fix for now
-
-Enable undo. # do this at the end to expediate startup!
+On "We need PHRASE-OBJECT", I need OBJECT. # a fix for now
